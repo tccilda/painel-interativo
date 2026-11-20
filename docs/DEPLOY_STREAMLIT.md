@@ -4,13 +4,13 @@
 
 Decisão do grupo em **17/11/2026**: publicar somente dados reais do **município do Rio de Janeiro, RJ**, em MWmed, após receber uma base compatível. A carga recebida anteriormente é incompatível com esse recorte e permanece bloqueada. Não existe nesta distribuição uma base municipal aprovada para publicação.
 
-O código pode inicializar em ambiente limpo, sem o ZIP privado e sem fixtures. As três páginas exibem estados vazios, sem inventar resultados. Essa condição é um teste técnico, não uma versão científica pronta para apresentar ao orientador. A publicação está **pendente dos dados** e de autorização explícita; o trabalho está em uma branch local baseada no GitHub oficial.
+O código pode inicializar em ambiente limpo, sem o ZIP privado e sem fixtures. As três páginas exibem estados vazios, sem inventar resultados. Essa configuração permite hospedar uma prévia técnica. A avaliação científica depende de uma base municipal real aprovada.
 
 ## Parâmetros definidos
 
 | Campo | Valor a utilizar |
 |---|---|
-| Repositório GitHub | `AngeloSilv/Painel-Interativo` |
+| Repositório GitHub | `tccilda/painel-interativo` |
 | Branch | `main`, após integrar a proposta |
 | Main file path | `streamlit_app.py`, na raiz do repositório |
 | Python version | **3.13**, selecionar em Advanced settings |
@@ -21,7 +21,7 @@ O código pode inicializar em ambiente limpo, sem o ZIP privado e sem fixtures. 
 | Secrets necessários | Nenhum no funcionamento atual |
 | Demonstração | Desativada: `ENERGY_FORECAST_ALLOW_DEMO` ausente ou falsa |
 
-A disponibilidade do subdomínio não foi consultada nem reservada. A visibilidade do repositório GitHub será decidida pelo responsável; ela não foi alterada. A visibilidade pública do aplicativo deve ser conferida separadamente nas configurações de compartilhamento.
+A disponibilidade do subdomínio não foi consultada nem reservada. O repositório da organização é público. A visibilidade pública do aplicativo deve ser conferida separadamente nas configurações de compartilhamento.
 
 `.python-version` documenta a série de Python para ferramentas locais. A seleção de Python na hospedagem é feita na interface de Advanced settings; não depender desse arquivo ou de um `runtime.txt` para configurá-la. As instruções seguem a [documentação oficial de deploy](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
 
@@ -84,10 +84,10 @@ O smoke verifica saúde e respostas HTTP das três rotas. AppTests verificam a e
 
 `.gitignore` exclui `.env`, segredos Streamlit, chaves, credenciais usuais, ambiente virtual, logs, evidências locais e datasets privados. O checker recusa esses nomes/locais no índice Git sem imprimir seu conteúdo; é uma auditoria estrutural, não uma garantia de detecção de todo segredo possível. Revisar o diff antes de cada commit. Não há necessidade de segredos no aplicativo atual.
 
-## Procedimento de implantação, após dados e autorização
+## Implantação da prévia e atualização com dados
 
-1. Incorporar e testar o pacote municipal aprovado, disponibilizando os arquivos no checkout e documentando a autorização de distribuição. A checagem estrita de dados deve passar antes de seguir.
-2. Revisar `git status` e `git diff --cached --stat`, preparar um commit com a identidade do responsável e, com autorização, enviar a branch de trabalho para revisão no repositório oficial. A produção usa a `main` após aprovação e integração da proposta.
+1. Para a prévia, use a branch `main` publicada, que abre com os estados vazios. Para incluir resultados, revise e aprove a base municipal e registre a permissão de distribuição no repositório.
+2. Valide mudanças em uma branch de trabalho e integre-as à `main` por revisão. O aplicativo recebe os commits da branch vinculada.
 3. Em [share.streamlit.io](https://share.streamlit.io), entrar com a conta responsável, escolher **Create app** e informar o repositório, `main` e `streamlit_app.py`.
 4. Informar o subdomínio `energy-forecast-tcc`, caso disponível. Em **Advanced settings**, selecionar Python **3.13**. Não inserir credenciais locais; o app atual não exige secrets. Manter a demonstração desativada.
 5. Após autorização para publicar, acionar **Deploy** e acompanhar o build. O Cloud instala `requirements.txt` a partir do checkout; não enviar `.venv` nem arquivos temporários. Ver [dependências oficiais](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies).

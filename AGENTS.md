@@ -2,10 +2,10 @@
 
 ## Escopo
 
-- Destino oficial: AngeloSilv/Painel-Interativo. Propostas partem da main oficial em branch de trabalho. Preservar autoria e histórico. Ver CONTRIBUTING.md e docs/EXECUCAO_LOCAL_WINDOWS.md.
+- Destino oficial: tccilda/painel-interativo. Propostas partem da main oficial em branch de trabalho. Preservar autoria e histórico. Ver CONTRIBUTING.md e docs/EXECUCAO_LOCAL_WINDOWS.md.
 
 - Aplicação Python/Streamlit/Plotly/Pandas/NumPy, local ou Streamlit Community Cloud; testes Pytest. Não adicionar banco, autenticação, FastAPI, Docker ou frameworks JavaScript sem nova decisão do grupo.
-- Preparação pública definida em 17/11/2026: SOMENTE dados municipais reais; aguardar base compatível. Não publicar externamente, criar remoto nem alterar visibilidade GitHub sem autorização explícita. Ver docs/DEPLOY_STREAMLIT.md. Código portátil/estados vazios funcionais não equivalem a dados científicos prontos.
+- Preparação pública definida em 17/11/2026: Somente dados municipais reais nas análises públicas. A prévia técnica pode usar os estados vazios até a aprovação da base. Não publicar externamente, criar remoto nem alterar visibilidade GitHub sem autorização explícita. Ver docs/DEPLOY_STREAMLIT.md. Código portátil/estados vazios funcionais não equivalem a dados científicos prontos.
 - Python alvo da hospedagem: 3.13 (local verificado 3.13.14). requirements.txt contém somente runtime; requirements-dev.txt acrescenta Pytest. .python-version é referência local, a versão Cloud deve ser selecionada em Advanced settings. Não fixar server.address/port no config versionado; manter bind127.0.0.1 em comandos de desenvolvimento.
 - Manter exatamente três abas: Explorador de Previsões; Desempenho e Erros; Sazonalidade, Clima e Calendário. Navegação com `st.Page` e `st.navigation`, com `url_path` distintos.
 - Alvo definido pelo usuário: município do Rio de Janeiro, capital; unidade MWmed. Não reclassificar carga estadual ou de subsistema como municipal.

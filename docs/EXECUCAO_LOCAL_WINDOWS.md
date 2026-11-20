@@ -3,8 +3,8 @@
 Instale Git e Python 3.13. A versão testada é Python 3.13.14. Após a integração do painel à branch de produção, clone o repositório oficial:
 
 ```powershell
-git clone https://github.com/AngeloSilv/Painel-Interativo.git
-cd Painel-Interativo
+git clone https://github.com/tccilda/painel-interativo.git
+cd painel-interativo
 .\scripts\setup_local.bat
 .\scripts\run_local.bat
 ```

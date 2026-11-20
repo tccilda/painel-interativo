@@ -6,11 +6,11 @@ Aplicação local do TCC de Ciência da Computação da Universidade Veiga de Al
 
 O painel mantém fontes isoladas: **Base do grupo (CSV)** e **Arquivos dos modelos (JSON/CSV)**. A demonstração é uma ferramenta local/de testes que precisa ser habilitada explicitamente. Seus dados artificiais não representam medições, calendário oficial ou desempenho dos modelos do TCC.
 
-Repositório oficial [AngeloSilv/Painel-Interativo](https://github.com/AngeloSilv/Painel-Interativo).
+Repositório oficial [tccilda/painel-interativo](https://github.com/tccilda/painel-interativo).
 
 ## Situação da publicação
 
-A publicação do painel no Streamlit Community Cloud depende da incorporação de uma base municipal real aprovada. Um checkout sem essa base abre as três páginas com estados vazios informativos. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
+A prévia no Streamlit Community Cloud pode ser implantada com a estrutura atual. Os resultados reais dependem de uma base municipal aprovada. Um checkout sem essa base abre as três páginas com estados vazios informativos. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
 
 ## Revisão científica de 16/11/2026 — bloqueio da base incompatível
 
