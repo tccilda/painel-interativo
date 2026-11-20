@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from services.data_loader import DataBundle
-from services.geography_service import TARGET_REGION
+from services.geography_service import ACADEMIC_SERIES_REGION, TARGET_REGION
 
 
 @dataclass(frozen=True)
@@ -44,7 +44,7 @@ def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings
     region = options[0] if options else None
     # Séries distintas podem ter metadados próprios, mas não mudam o alvo territorial.
     if len(options) > 1:
-        region = st.sidebar.selectbox("Série municipal", options, key=f"region_{bundle.mode}")
+        region = st.sidebar.selectbox("Série de carga", options, key=f"region_{bundle.mode}")
     units = set(catalog.loc[catalog["region"] == region, "unit"].unique()) if not catalog.empty else set()
     if region is not None and not bundle.observations.empty:
         units.update(bundle.observations.loc[bundle.observations["region"] == region, "unit"].unique())
@@ -63,7 +63,8 @@ def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings
     if stations:
         selected = st.sidebar.selectbox(
             "Estação", ["Média disponível"] + stations, key=f"station_{bundle.mode}_{region}",
-            help="Média das estações disponíveis em cada instante. Estações externas ou sem localização verificada não entram na visão municipal.",
+            help="Média das estações disponíveis em cada instante. Na base do TCC, A621 fica na Vila Militar e A601 em Seropédica.",
         )
         station = None if selected == "Média disponível" else selected
-    return SidebarSettings(bundle.mode, 24, region, TARGET_REGION, unit=unit, station=station)
+    region_label = ACADEMIC_SERIES_REGION if bundle.provenance.get("geographic_status") == "academic_series" else TARGET_REGION
+    return SidebarSettings(bundle.mode, 24, region, region_label, unit=unit, station=station)

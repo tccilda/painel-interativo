@@ -45,8 +45,12 @@ def format_timestamp(value: pd.Timestamp, timezone: str = "America/Sao_Paulo") -
 def page_header(title: str, description: str = "") -> tuple[DataBundle, SidebarSettings]:
     bundle, settings = get_context()
     st.title(title)
-    st.caption(f"{TARGET_REGION}, RJ · {settings.unit} · America/Sao_Paulo")
     audit = bundle.provenance.get("geographic_audit") or geographic_status(bundle)
+    academic = audit["status"] == "academic_series"
+    region_label = audit["source_region"] if academic else f"{TARGET_REGION}, RJ"
+    st.caption(f"{region_label} · {settings.unit} · America/Sao_Paulo")
+    if academic:
+        st.caption(audit["reason"])
     if audit["status"] == "incompatible":
         st.error("Base incompatível com o recorte municipal. " + audit["reason"])
         with st.expander("Evidência geográfica", expanded=True):

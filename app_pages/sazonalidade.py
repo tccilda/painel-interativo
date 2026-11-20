@@ -16,7 +16,7 @@ def render() -> None:
     bundle, settings = page_header("Sazonalidade, Clima e Calendário")
     observations = region_history(bundle.observations, settings.region, unit=settings.unit)
     if observations.empty:
-        st.info("Nenhuma carga municipal observada disponível.")
+        st.info("Nenhuma carga observada disponível.")
         return
     local = observations["timestamp"].dt.tz_convert(settings.timezone)
     observations = observations.loc[local.dt.year.between(2024, 2026)]
@@ -66,7 +66,7 @@ def render() -> None:
         climate_history = filter_history(history, climate_period[0], climate_period[1], settings.timezone)
         matched = join_weather(climate_history, bundle.weather, settings.region, station=settings.station, timezone=settings.timezone)
         if matched.empty:
-            st.info("Sem temperatura municipal observada correspondente ao intervalo.")
+            st.info("Sem temperatura observada correspondente ao intervalo.")
         else:
             scatter = temperature_scatter(matched, unit=settings.unit, timezone=settings.timezone)
             scatter.update_layout(title_text=None, margin={"t": 20})
@@ -95,10 +95,10 @@ def render() -> None:
         st.write("Perfis são médias das cargas horárias disponíveis, sem extrapolar períodos incompletos. Contagens estão no hover. As análises usam somente 2024–2026 e observações já ocorridas.")
         st.write("A dispersão mantém todos os pares exatos do intervalo climático, com transparência e renderização WebGL. Não há interpolação, imputação ou conclusão causal.")
         st.write("A série climática usa médias somente dos pares disponíveis: dia local ou semana iniciada na segunda-feira. Períodos sem pares permanecem como lacunas. Dois eixos preservam as unidades de carga e temperatura; agregações são apenas visuais e não alteram modelos ou métricas.")
-        st.write(f"Estação: {settings.station or 'média das estações municipais disponíveis em cada instante'}. O número de estações pode variar. A601 (Seropédica) não integra a visão municipal.")
+        st.write(f"Estação: {settings.station or 'média das estações disponíveis em cada instante'}. O número de estações pode variar. Na base regional, A621 fica na Vila Militar e A601 em Seropédica.")
         st.write("Sazonalidade e calendário usam o período da análise; clima usa seu intervalo próprio. Na resolução horária, a série temporal é limitada a 168 h para manter a leitura.")
         st.write("Prioridade do calendário: feriado > ponto facultativo > fim de semana > dia útil. O ponto facultativo aplica-se ao âmbito administrativo indicado, sem implicar paralisação de toda a economia. Datas sem classificação permanecem não informadas.")
-        st.write("A abrangência e as datas devem ser sustentadas pelas fontes oficiais. A auditoria encontrou eventos federais e omissões municipais no pacote recebido; esse pacote está bloqueado na visão municipal.")
+        st.write("O calendário fornecido pelo grupo é usado como contexto para a análise no Rio. Seus rótulos foram mantidos conforme a fonte.")
         if bundle.mode == "demo":
             st.write("O calendário e todas as demais variáveis são sintéticos; não são fontes oficiais.")
     with st.expander("Histórico horário"):

@@ -41,4 +41,4 @@ Em uma cópia de testes sem fixtures, execute:
 .\.venv\Scripts\python.exe -m pytest -q -W error::DeprecationWarning -W error::SyntaxWarning
 ```
 
-Sem dados municipais, as páginas informam as ausências. Para testar gráficos com dados sintéticos gerados na cópia de desenvolvimento, defina ENERGY_FORECAST_ALLOW_DEMO=true no ambiente antes de iniciar e selecione **Demonstração** manualmente. A carga regional anterior continua em quarentena. Consulte o [guia dos modelos](INTEGRACAO_MODELOS.md).
+A versão distribuída abre com o pacote acadêmico regional. Se a fonte estiver ausente, as páginas informam a indisponibilidade. Para testar gráficos com dados sintéticos gerados na cópia de desenvolvimento, defina ENERGY_FORECAST_ALLOW_DEMO=true no ambiente antes de iniciar e selecione **Demonstração** manualmente. Consulte o [guia dos modelos](INTEGRACAO_MODELOS.md).

@@ -2,7 +2,7 @@
 
 ## TCC Energy Forecast — Rio de Janeiro
 
-Aplicação local do TCC de Ciência da Computação da Universidade Veiga de Almeida. O recorte definido é o **município do Rio de Janeiro (capital)** e a unidade-alvo é **MWmed**. A série utilizada precisa representar esse município; uma carga estadual, de concessão ou de subsistema não se torna municipal por mudar seu rótulo.
+Aplicação local do TCC de Ciência da Computação da Universidade Veiga de Almeida. O estudo tem o Rio de Janeiro como contexto. A aplicação usa a carga regional do **subsistema Sudeste/Centro-Oeste**, em **MWmed**, como referência acadêmica. As estações e o calendário do pacote fornecem o contexto local.
 
 O painel mantém fontes isoladas: **Base do grupo (CSV)** e **Arquivos dos modelos (JSON/CSV)**. A demonstração é uma ferramenta local/de testes que precisa ser habilitada explicitamente. Seus dados artificiais não representam medições, calendário oficial ou desempenho dos modelos do TCC.
 
@@ -10,23 +10,21 @@ Repositório oficial [tccilda/painel-interativo](https://github.com/tccilda/pain
 
 ## Situação da publicação
 
-A prévia no Streamlit Community Cloud pode ser implantada com a estrutura atual. Os resultados reais dependem de uma base municipal aprovada. Um checkout sem essa base abre as três páginas com estados vazios informativos. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
+A versão hospedada abre por padrão com a base acadêmica do grupo. O pacote contém as previsões de 24h e 48h, a carga, as estações meteorológicas e o calendário usado no trabalho. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
 
-## Revisão científica de 16/11/2026 — bloqueio da base incompatível
+## Abrangência da base acadêmica
 
 A declaração municipal feita na integração anterior foi confrontada com uma fonte independente. **As 8.784 horas de carga de 2024 do pacote recebido coincidem com `val_carga` do subsistema Sudeste/Centro-Oeste**, com diferença máxima de 1,000444171950221×10⁻⁸ MWmed. O [conjunto oficial do ONS](https://dados.ons.org.br/dataset/balanco-energia-subsistema) é horário e regional; seu [dicionário](https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/balanco_energia_subsistema_ho/DicionarioDados_Balanco_Energia_Subsistema.json) define `val_carga` em MWmed. A comparação é vinculada aos hashes do ZIP e do arquivo oficial, com evidência reproduzível em `artifacts/revisao_comparacao_ons_2024.json`.
 
-**Esse pacote está em quarentena na visão municipal.** Selecionar Base do grupo exibe o diagnóstico e impede gráficos, indicadores e exportações de carga ou resultados rotulados como municipais. O alvo do TCC continua sendo exclusivamente o município do Rio; não foi substituído por região metropolitana ou subsistema. ZIP, configuração original, previsões e resultados recebidos permanecem intactos. Não há troca automática por dados sintéticos: a demonstração deve ser selecionada explicitamente.
+O painel usa o pacote do grupo com o rótulo regional e preserva os valores originais de carga, previsões e métricas. A621 fica na Vila Militar (Rio de Janeiro) e A601, em Seropédica. As duas estações ficam disponíveis na análise acadêmica, com seleção individual ou média. [Catálogo oficial do INMET](https://apitempo.inmet.gov.br/estacoes/T)
 
-O [catálogo oficial do INMET](https://apitempo.inmet.gov.br/estacoes/T) também identifica A621 como Rio de Janeiro–Vila Militar e A601 como Seropédica–Ecologia Agrícola. A601 não entra na média municipal; estações sem localização verificada ficam indisponíveis na visão municipal. Dados sintéticos continuam permitidos e sinalizados como artificiais.
-
-O calendário recebido não é uma referência municipal integralmente verificada. Há pontos facultativos de âmbito não informado e diferenças em relação às fontes municipais de 2025: 28/02 e 31/10 constam como dias úteis no CSV, enquanto o [Decreto Rio 55.705](https://doweb.rio.rj.gov.br/apifront/portal/edicoes/imprimir_materia/1136252/6942) e a [Prefeitura/CET-Rio](https://prefeitura.rio/cet-rio/faixas-reversiveis-da-cidade-serao-suspensas-nesta-sexta-feira-3/) registram pontos facultativos municipais nessas datas. O CSV não foi reescrito. O grupo deve fornecer a carga municipal e revisar a abrangência do calendário antes do uso científico. Ponto facultativo administrativo não equivale a paralisação de toda a economia.
+O calendário recebido não é uma referência municipal integralmente verificada. Há pontos facultativos de âmbito não informado e diferenças em relação às fontes municipais de 2025: 28/02 e 31/10 constam como dias úteis no CSV, enquanto o [Decreto Rio 55.705](https://doweb.rio.rj.gov.br/apifront/portal/edicoes/imprimir_materia/1136252/6942) e a [Prefeitura/CET-Rio](https://prefeitura.rio/cet-rio/faixas-reversiveis-da-cidade-serao-suspensas-nesta-sexta-feira-3/) registram pontos facultativos municipais nessas datas. O CSV não foi reescrito. A interpretação acadêmica deve considerar a abrangência do calendário. Ponto facultativo administrativo não equivale a paralisação de toda a economia.
 
 Relatórios locais da revisão: `artifacts/revisao_auditoria_dados.md`, `artifacts/revisao_auditoria_avaliacao.md` e `artifacts/revisao_auditoria_visual.md`. Essa pasta de evidências de trabalho não integra a distribuição Git pública. A verificação numérica independente abrange 2024; ela não certifica os demais anos nem o protocolo de treino dos modelos.
 
 ## Base fornecida: painel.zip
 
-O inventário abaixo descreve os arquivos brutos recebidos, preservados para auditoria. Município e fuso foram inicialmente declarados pelo grupo; a evidência independente posterior contradiz o recorte municipal da carga de 2024 e impede o uso analítico desse pacote no painel municipal.
+O inventário abaixo descreve os arquivos brutos recebidos, preservados para auditoria. O fuso informado pelo grupo é America/Sao_Paulo. O painel identifica a série de carga como regional.
 
 - **24.840 horas** de carga, de 01/01/2024 a 31/10/2026, sem lacunas ou duplicidades na série recebida.
 - **11.618 emissões de cada horizonte**, com 278.832 alvos de 24h e 557.664 alvos de 48h. Emissões completas e valores observados/referências conferidos com a série histórica, respeitando a precisão de exportação.
@@ -34,11 +32,11 @@ O inventário abaixo descreve os arquivos brutos recebidos, preservados para aud
 - **1.035 dias de calendário informado**, com 21 pontos facultativos sem âmbito declarado. Esses âmbitos permanecem **não informados**; não se presume uma esfera administrativa.
 - Detalhes por emissão existem para **Teste 2025** e **Forecast 2026**. A **Validação 1S2025** e o **piloto só-carga** aparecem apenas nos resumos recebidos. Seus números são identificados como fornecidos, sem inventar curvas/episódios ou afirmar que foram recalculados. Cobertura e contagens de zeros não verificáveis ficam indisponíveis.
 
-Uma cópia íntegra está em `data/imported/painel_b10830eaae44.zip`, com SHA-256 e metadados em `data/imported/config.json`. Essa pasta é ignorada pelo Git. O ZIP é lido diretamente, sem extrair seus membros ou criar milhares de JSONs. Um catálogo leve seleciona data, hora e modelo, materializando apenas a emissão escolhida. O lote é mantido em memória como somente leitura e recarregado quando a assinatura dos arquivos muda.
+Uma cópia íntegra está em `data/imported/painel_b10830eaae44.zip`, com SHA-256 e metadados em `data/imported/config.json`. Apenas esse pacote e sua configuração estão na distribuição pública. O ZIP é lido diretamente, sem extrair seus membros ou criar milhares de JSONs. Um catálogo leve seleciona data, hora e modelo, materializando apenas a emissão escolhida. O lote é mantido em memória como somente leitura e recarregado quando a assinatura dos arquivos muda.
 
 Os relatórios estão em `artifacts/auditoria_serie.md` e `artifacts/auditoria_previsoes.md`. O adaptador verifica hash, formatos, horizontes, partições e correspondência com a carga; os erros exportados não substituem os cálculos do painel. O resíduo do painel continua **observado − previsto**, mesmo que algum resumo original use o sinal oposto.
 
-**Base do grupo (CSV)** permanece como opção inicial quando a configuração existe e apresenta o bloqueio geográfico para este pacote. Sem essa configuração, a aplicação inicia em **Arquivos dos modelos**, mesmo que as pastas reais estejam vazias. Uma base substituta precisa representar efetivamente o município e ter fonte/unidade/fuso documentados; alterar somente o rótulo não corrige uma série regional. Hashes divergentes são recusados.
+**Base do grupo (CSV)** é a opção inicial quando a configuração está disponível. O carregador confere a integridade do ZIP e o formato das séries.
 
 ## Instalação e execução
 
@@ -124,7 +122,7 @@ data/predictions/           # JSONs dos modelos reais
 data/historical/            # Carga observada
 data/weather/               # Meteorologia observada
 data/calendar/              # Calendário verificado do município
-data/imported/              # Cópia privada do ZIP e configuração explícita
+data/imported/              # ZIP acadêmico e configuração da fonte
 tests/
 .streamlit/config.toml
 requirements.txt

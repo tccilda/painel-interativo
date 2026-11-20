@@ -2,9 +2,7 @@
 
 ## Estado desta preparação
 
-Decisão do grupo em **17/11/2026**: publicar somente dados reais do **município do Rio de Janeiro, RJ**, em MWmed, após receber uma base compatível. A carga recebida anteriormente é incompatível com esse recorte e permanece bloqueada. Não existe nesta distribuição uma base municipal aprovada para publicação.
-
-O código pode inicializar em ambiente limpo, sem o ZIP privado e sem fixtures. As três páginas exibem estados vazios, sem inventar resultados. Essa configuração permite hospedar uma prévia técnica. A avaliação científica depende de uma base municipal real aprovada.
+A branch `main` inclui o pacote acadêmico adotado pelo grupo. A aplicação abre com as três páginas e com as previsões fornecidas de 24h e 48h. A série de carga é regional, em MWmed, e serve como referência para o trabalho sobre o Rio de Janeiro.
 
 ## Parâmetros definidos
 
@@ -48,16 +46,16 @@ Não existe treinamento, download de séries extensas, geração de demonstraç�
 
 | Uso | Arquivos esperados pelo carregador existente | Situação |
 |---|---|---|
-| Previsões 24h/48h | `data/predictions/*.json`, nos [contratos de integração](INTEGRACAO_MODELOS.md) | Sem previsões municipais públicas aprovadas |
-| Histórico, reais e referências | `data/historical/*.csv` | Sem carga municipal compatível |
-| Meteorologia municipal | `data/weather/*.csv`, estações verificadas | Sem pacote aprovado para distribuição |
-| Calendário | `data/calendar/*.csv`, datas/esferas/atos conferidos | Necessita revisão municipal |
-| Integração privada antiga | `data/imported/config.json` e ZIP | Privada e geograficamente incompatível; não incluir |
+| Previsões 24h/48h | `data/predictions/*.json`, nos [contratos de integração](INTEGRACAO_MODELOS.md) | Previsões do grupo também vêm no ZIP |
+| Histórico, reais e referências | `data/historical/*.csv` | Carga regional no ZIP |
+| Meteorologia municipal | `data/weather/*.csv`, estações verificadas | A621 e A601 no ZIP |
+| Calendário | `data/calendar/*.csv`, datas/esferas/atos conferidos | Calendário informado pelo grupo no ZIP |
+| Base acadêmica padrão | `data/imported/config.json` e ZIP | Incluída no Git com checksum e rótulo regional |
 | Fixtures sintéticas | Geradas em `data/demo/`, 23 arquivos, cerca de 7,13 MiB | Somente desenvolvimento/testes, fora do Git público |
 
 Para habilitar todas as análises reais, a carga deve cobrir os alvos e ao menos a janela de histórico e referência semanal; o clima/calendário devem abranger os intervalos analisados. Lacunas permanecem ausentes, com cobertura explícita. Não inventar observações para forecasts futuros nem substituir a validação sem detalhes por curvas artificiais. O formato e as regras temporais estão no [guia de integração](INTEGRACAO_MODELOS.md).
 
-Antes de incorporar uma base futura, registrar fonte oficial/produtora, recorte municipal comprovado, unidade, fuso, processamento temporal, natureza observada/previsão retrospectiva/forecast e permissão ou licença de redistribuição. Preservar modelos, versões e partições. Revisar o calendário e as estações. Criar exceções nominais no `.gitignore` somente para os arquivos aprovados; eles devem fazer parte do checkout da nuvem. Não remover globalmente a proteção das pastas privadas nem forçar a inclusão do ZIP antigo.
+Antes de incorporar uma base futura, registrar fonte oficial/produtora, abrangência documentada, unidade, fuso, processamento temporal, natureza observada/previsão retrospectiva/forecast e permissão ou licença de redistribuição. Preservar modelos, versões e partições. Revisar o calendário e as estações. Criar exceções nominais no `.gitignore` somente para os arquivos aprovados; eles devem fazer parte do checkout da nuvem. Não remover globalmente a proteção das pastas privadas nem incluir arquivos particulares.
 
 Não foi acrescentado um download externo de dados: não há fonte municipal autorizada fornecida para configurar. Quando o pacote correto chegar, sua inclusão e a auditoria científica serão uma etapa própria. A checagem `--require-municipal-data` sinaliza a pendência atual; ela deverá ser atualizada com verificação da fonte efetivamente aprovada, sem substituir essa auditoria por um rótulo `municipal`.
 
@@ -86,7 +84,7 @@ O smoke verifica saúde e respostas HTTP das três rotas. AppTests verificam a e
 
 ## Implantação da prévia e atualização com dados
 
-1. Para a prévia, use a branch `main` publicada, que abre com os estados vazios. Para incluir resultados, revise e aprove a base municipal e registre a permissão de distribuição no repositório.
+1. Use a branch `main` publicada. A base acadêmica já está no checkout. Para trocar a fonte futuramente, atualize a configuração e documente sua abrangência.
 2. Valide mudanças em uma branch de trabalho e integre-as à `main` por revisão. O aplicativo recebe os commits da branch vinculada.
 3. Em [share.streamlit.io](https://share.streamlit.io), entrar com a conta responsável, escolher **Create app** e informar o repositório, `main` e `streamlit_app.py`.
 4. Informar o subdomínio `energy-forecast-tcc`, caso disponível. Em **Advanced settings**, selecionar Python **3.13**. Não inserir credenciais locais; o app atual não exige secrets. Manter a demonstração desativada.

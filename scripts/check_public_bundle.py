@@ -40,6 +40,10 @@ REQUIRED_PUBLIC_FILES = (
     "services/forecast_service.py", "services/geography_service.py", "services/history_service.py",
     "services/metrics_service.py", "services/pattern_service.py",
 )
+PUBLIC_ACADEMIC_ARCHIVE = "data/imported/painel_b10830eaae44.zip"
+PUBLIC_ACADEMIC_SHA256 = "b10830eaae445d958d42f05f00551b66a500126af7cbfdfd7d981f34f7e7f9d7"
+PUBLIC_ACADEMIC_CONFIG = "data/imported/config.json"
+
 PRIVATE_DATA_DIRS = {"historical", "predictions", "weather", "calendar", "imported"}
 PRIVATE_NAMES = {
     "secrets.toml", "secrets.json", "secrets.yaml", "secrets.yml", "credentials", "credentials.json",
@@ -183,6 +187,25 @@ def check_public_bundle(root: Path, selected_paths: Iterable[str] | None = None,
             report.errors.append(f"Caminho duplicado na seleção: {relative}.")
             continue
         selected.add(relative)
+        if relative in (PUBLIC_ACADEMIC_ARCHIVE, PUBLIC_ACADEMIC_CONFIG):
+            try:
+                if relative == PUBLIC_ACADEMIC_ARCHIVE:
+                    with path.open("rb") as file:
+                        if hashlib.file_digest(file, "sha256").hexdigest() != PUBLIC_ACADEMIC_SHA256:
+                            raise ValueError("Arquivo diferente do pacote publicado.")
+                else:
+                    config = json.loads(path.read_text(encoding="utf-8"))
+                    required = {"archive", "sha256", "region", "unit", "timezone", "region_source", "timezone_source"}
+                    if not isinstance(config, dict) or set(config) != required or (
+                        config["archive"], config["sha256"], config["region"], config["unit"], config["timezone"]
+                    ) != (Path(PUBLIC_ACADEMIC_ARCHIVE).name, PUBLIC_ACADEMIC_SHA256,
+                          "Subsistema Sudeste/Centro-Oeste", "MWmed", "America/Sao_Paulo"):
+                        raise ValueError("Configuração diferente da fonte acadêmica.")
+            except (OSError, ValueError, UnicodeError):
+                report.errors.append(f"Base acadêmica inválida ou ausente: {relative}.")
+                continue
+            report.selected_bytes += path.stat().st_size
+            continue
         reason = _private_reason(relative)
         if reason:
             # Recusa pelo nome antes de abrir ou ler qualquer conteúdo.
@@ -192,6 +215,8 @@ def check_public_bundle(root: Path, selected_paths: Iterable[str] | None = None,
             report.errors.append(f"Arquivo selecionado ausente: {relative}.")
             continue
         report.selected_bytes += path.stat().st_size
+    if len(selected.intersection({PUBLIC_ACADEMIC_ARCHIVE, PUBLIC_ACADEMIC_CONFIG})) == 1:
+        report.errors.append("A base acadêmica precisa do ZIP e da configuração juntos.")
     report.selected_files = len(selected)
     for relative in REQUIRED_PUBLIC_FILES:
         if relative not in selected:

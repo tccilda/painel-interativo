@@ -87,7 +87,7 @@ def render() -> None:
         if bundle.mode == "demo":
             st.write("Carga, temperatura, calendário e previsões são artificiais; não representam precisão de modelos treinados ou calendário oficial.")
         else:
-            st.write("O recorte municipal foi declarado na fonte; a declaração não substitui a comprovação da origem. A separação de treino/validação/teste deve ser documentada pelos responsáveis.")
+            st.write("A abrangência vem da fonte selecionada. O calendário do Rio fornece contexto acadêmico à série regional. Consulte os metadados do modelo para a separação de treino, validação e teste.")
     with st.expander("Valores horários e calendário"):
         table = forecast.predictions.merge(calendar.drop(columns="date"), on="timestamp", validate="one_to_one")
         table["timestamp"] = table["timestamp"].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M %z")
