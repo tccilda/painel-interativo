@@ -6,8 +6,6 @@ and future targets do not acquire observed values through interpolation.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-
 import numpy as np
 import pandas as pd
 
@@ -85,33 +83,6 @@ def _prediction_frame(forecast: Forecast) -> pd.DataFrame:
     if not differences.dt.total_seconds().eq(3600).all():
         raise ValueError("As previsões devem estar ordenadas em intervalos de uma hora.")
     return frame.reset_index(drop=True)
-
-
-def select_forecasts(
-    forecasts: Iterable[Forecast],
-    horizon_hours: int,
-    region: str | None = None,
-    unit: str | None = None,
-) -> list[Forecast]:
-    """Filter without truncating 48-hour runs into a different 24-hour run."""
-    if type(horizon_hours) is not int or horizon_hours not in (24, 48):
-        raise ValueError("O horizonte deve ser 24 ou 48 horas.")
-    selected = [
-        forecast
-        for forecast in forecasts
-        if forecast.horizon_hours == horizon_hours
-        and (region is None or forecast.region == region)
-        and (unit is None or forecast.unit == unit)
-    ]
-    return sorted(
-        selected,
-        key=lambda forecast: (
-            -_utc_timestamp(forecast.issued_at, "issued_at").value,
-            forecast.model_name,
-            forecast.model_version,
-            str(forecast.source_path or ""),
-        ),
-    )
 
 
 def forecast_summary(forecast: Forecast) -> dict[str, float | pd.Timestamp]:

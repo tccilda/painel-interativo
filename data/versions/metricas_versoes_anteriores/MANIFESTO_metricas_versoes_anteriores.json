@@ -1,0 +1,986 @@
+{
+  "alvo_id": "ONS_SECO_piloto",
+  "checagens": {
+    "blocos_48_contagens": 212,
+    "blocos_48_metricas": 422,
+    "contagens_publicadas": 15432,
+    "extremos_auxiliares_v4": 864,
+    "identidades_em_conformidade_com_desenho": 210,
+    "maes_horarios_v3_transcritos": 96,
+    "matrizes_de_pares_com_grade_carga_e_referencias": 46,
+    "particoes_contagens": 1734,
+    "particoes_metricas": 3393,
+    "piloto_globais_2_casas": 48,
+    "piloto_sazonal_2_casas": 48,
+    "v1_24_globais": 24,
+    "v1_48_globais": 96,
+    "v1_espelho": 144,
+    "v1_forecast_celula18": 24,
+    "v1_validacao_celula14": 12,
+    "v2_24_celulas_4_casas": 93,
+    "v2_24_globais": 66,
+    "v2_24_passos": 1584,
+    "v2_24_vies_celulas_4_casas": 25,
+    "v2_48_globais": 240,
+    "v2_48_passos": 384,
+    "v3_24_globais": 56,
+    "v3_24_passos": 864,
+    "v3_48_globais": 144,
+    "v3_48_passos": 2592,
+    "v3_mae_horario_publicado_vs_global": 4,
+    "v4_24_globais": 120,
+    "v4_24_passos": 1872,
+    "v4_48_globais": 360,
+    "v4_48_passos": 5472
+  },
+  "escopo": "retrospectiva_nao_cego",
+  "execucao_historica": false,
+  "fontes_sha256": {
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/erros_por_passo_24h_v4.csv": "925702913c973883bb9bfa13ebc13902bc920f4961de13df777e0a96510fa6cd",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/erros_por_passo_48h_v4.csv": "31d8738a0a2b814dc7016f5745132b5fcab93f176e0d9e83a6eb35919f363f89",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/metricas48_consolidadas_v4.csv": "ff9d1d27b8c00f579089b9d44efd744027fbfd6980489229ed636bfe36a61bb0",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/metricas_24h_v4.csv": "c8f9502878a92c168a0e966df20d09804d406db2264de4cf4adb42fd82ec937f",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/referencia_v4_replay/pares_v4_24h.csv.gz": "5843d965ac1e7ccb2f96985e39ea798b9991fe19256cab3976c4e6f493fdf826",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/referencia_v4_replay/pares_v4_48h.csv.gz": "d29caf7ba44fbbaef51af0d622028f86ecdbaefa64702960c1da4979b33e795b",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/reports/03-dados-eda/T32_DADOS_VERSOES_ANTERIORES.md": "3277e0c0b95ac8e70a95d2361835ed3541bb116c04414da1b397052f9fa0cd05",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/reports/04-solucao/T33_MAPEAMENTO_METRICAS_VERSOES.md": "9c0f9d6a26e82cc049bd383a18cbe80eea5cc2c43428f037202886c6ee3033dd",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/reports/04-solucao/VALIDATION_HISTORICAS.md": "8c0c5a7dfdf98a92ac8b6823aaa202fa5c856a4fe238a88e42f211e4e7364a00",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/reports/05-reproducao/T34_INSPECAO_VERSOES_ANTERIORES.md": "944c6f183f27fa9738d70417590c8d90693d549e1e906800bdfd66af492596df",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/reports/05-reproducao/gerar_metricas_versoes_anteriores.py": "e51efe74e09a6ce6fa647708fc2ca7cbbb4703f6bb6b556305bda4c309776ca0",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/curva_carga/CURVA_CARGA_2024.csv": "0c7e02591887591ec0a1e758eeb744dcd24c69e91c09e032ce7772838676cc32",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/curva_carga/CURVA_CARGA_2025.csv": "69a3d2560bf111e46d1fa356ee4be7c917ca89bf53ae16ab1af9f9e7477ff4c4",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/curva_carga/CURVA_CARGA_2026.csv": "30dd8ff9417d75e30c85eac14027f12d3b08e222d85f183c2592c0a3e04ad743",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v2/metricas_24h.csv": "3b7c04b5edf756060b6a74caacd23c22dba95c8e032c3aafff3d2fa6e140ee94",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v3/erros_por_passo_24h_v3.csv": "6727a77fa9cfe5c101090fba1a1b5380f89b4107415de976be3cf34787d26633",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v3/metricas_24h_v3.csv": "175b42206722b2b1653056e18a74851ce1c19e26b544644165c9921a524d8219",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/rodada_revisao_20261116/insumos/previsoes_24h_hipotese_UTC.csv.gz": "4a940273d120a7d21baaf3192e07d290c7206f9227771c94a87a67d623ea13a9",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/modelos_historicos/sensibilidade24/metricas_24h.csv": "3b7c04b5edf756060b6a74caacd23c22dba95c8e032c3aafff3d2fa6e140ee94",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/modelos_historicos/sensibilidade48/metricas48_consolidadas.csv": "e78cb49bd651c340d762a142cb6dba7607d07244547fb8b97455c7e192d79daa",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/suporte/rodada2_20261116/resultados_sensibilidade_v1/metricas_por_passo_24h.csv": "1ceb232c6abc1778d76f507133c8cd68cf766720932dea13711ad345f78de092",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/erros_por_passo.csv": "b2fe7297dee6e5bcda5c43451b382957eccca267a1a49a9f0635c0366ff02c5c",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/metricas48_consolidadas.csv": "e78cb49bd651c340d762a142cb6dba7607d07244547fb8b97455c7e192d79daa",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v3/erros_por_passo_48h_v3.csv": "7d2b97e4214d2d31af9fb9bed9057bc6ee535664e63c62cf49d2a289f089089a",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v3/metricas48_consolidadas_v3.csv": "a091466ba5fd68b29af1dc59a0b39bd7979a4d8924b1c656d275bdf9536e0b49",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/entrega_painel_v5/metricas_globais_v5.csv": "5d630b1eb3e88b457eb6702f36a91c3d329db070a695ee3e436b09cd870c861c",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/entrega_painel_v5/metricas_por_hora_v5.csv": "9933ec504f3ae04ed3e213e6d40be0bdc28d51075502af4a1c1d6374d375eef8",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/entrega_painel_v5/metricas_por_mes_v5.csv": "66e8a92390a183a0b5cc7bd3dcd728c1a39b343f14f73953dd7a224804dd783c",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/entrega_painel_v5/metricas_por_passo_v5.csv": "263086f96cfcf5248c6ae5d0eca2a4b95027faffa7a06093d90f7c4375cc9aff",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_24h_2024_2026.ipynb": "4a6c219d1f834bd51bd3bd1a0d915733dd81f72c33cedc7856703dd273c863be",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_24h_2024_2026_v2.ipynb": "70d1641d326495d43637505ad11c8a4525de6d7464d1348fdad3bd444e4c3761",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_24h_2024_2026_v3.ipynb": "da62612185784650ca93e64af12c7323584cb5796a2cd41d7b60fdc0ac1d8225",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_48h_2024_2026.ipynb": "70ec5aa4afa5b9ca8ac9f68ec9e99c8ed45e13a4f9f6788e6ad34c09069b4e0f",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_48h_2024_2026_v3.ipynb": "f4bc12daf4af5f121534340e109e1d7f6215f8a8c1fa40c92654a7f43bb6061b",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/previsoes_24h_2025_2026.csv": "719e91a10d5c7a794884df971a0e14c213513d16b9b0b558f7b9e1959cb10bc2",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/previsoes_48h_2025_2026.csv": "f3b8a017b9d2d0e29552f9674f06301a5b564d5b0121c4e248c999a8b1d959cd",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/resumo_metricas.csv": "b21b004ae8a16011a3192520dd80ddb6770dceaf371ee6d115d650392bbc3cea",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/resumo_metricas_24h.csv": "d2f147534f06a93af4a9a24fc5d97c6b9f7b8c843988bf6f0c76564e5bbafbb9",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/resumo_metricas_48h.csv": "b64ac5dfae59ca958c5649aa62b9743a699568d29efe53b1288593877f72db09",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/serie_horaria_integrada_2024_2026.csv": "c17ea1c08f70c078f534feaaf60e37a813f87f2a7657980e7a799cbb1e7b59d6",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/previsao_piloto_se.ipynb": "2718845977f6b76709af55546937ca224d62ecbe4c855d946ec9afaa64979111",
+    "/home/versailles/OpenBot/Shared/Transfers/generated/35ce8288-b295-431f-9964-4ff28a4c9944/pacote48_sensibilidade_20261116.zip": "6b8d68cb23d59c5f3f6d417f086743adc27a36626dbdebfa5f1852b0979976cd",
+    "/home/versailles/OpenBot/Shared/Transfers/generated/a07f3d32-8a01-435b-b114-1cff38d2f24e/pacote_rodada2_20261116.zip": "507119439ffe2f49da3057fd67bd25f0887809bc2cc639f8eb50e859cd243d4c"
+  },
+  "janela_por_versao_cenario_etapa_horizonte": [
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4297,
+      "primeira_origem": "2024-12-31T23:00:00",
+      "primeiro_alvo": "2025-01-01T00:00:00",
+      "ultima_origem": "2025-06-28T23:00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00",
+      "versao": "piloto"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4297,
+      "primeira_origem": "2024-12-31T23:00:00",
+      "primeiro_alvo": "2025-01-01T00:00:00",
+      "ultima_origem": "2025-06-28T23:00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00",
+      "versao": "piloto"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4369,
+      "primeira_origem": "2025-06-30T23:00:00",
+      "primeiro_alvo": "2025-07-01T00:00:00",
+      "ultima_origem": "2025-12-29T23:00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00",
+      "versao": "piloto"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4369,
+      "primeira_origem": "2025-06-30T23:00:00",
+      "primeiro_alvo": "2025-07-01T00:00:00",
+      "ultima_origem": "2025-12-29T23:00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00",
+      "versao": "piloto"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4297,
+      "primeira_origem": "2024-12-31T23:00:00",
+      "primeiro_alvo": "2025-01-01T00:00:00",
+      "ultima_origem": "2025-06-28T23:00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00",
+      "versao": "v1"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4297,
+      "primeira_origem": "2024-12-31T23:00:00",
+      "primeiro_alvo": "2025-01-01T00:00:00",
+      "ultima_origem": "2025-06-28T23:00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00",
+      "versao": "v1"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4369,
+      "primeira_origem": "2025-06-30T23:00:00",
+      "primeiro_alvo": "2025-07-01T00:00:00",
+      "ultima_origem": "2025-12-29T23:00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00",
+      "versao": "v1"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4369,
+      "primeira_origem": "2025-06-30T23:00:00",
+      "primeiro_alvo": "2025-07-01T00:00:00",
+      "ultima_origem": "2025-12-29T23:00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00",
+      "versao": "v1"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7249,
+      "primeira_origem": "2025-12-31T23:00:00",
+      "primeiro_alvo": "2026-01-01T00:00:00",
+      "ultima_origem": "2026-10-29T23:00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00",
+      "versao": "v1"
+    },
+    {
+      "cenario": "sem_cenario_bruto",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7249,
+      "primeira_origem": "2025-12-31T23:00:00",
+      "primeiro_alvo": "2026-01-01T00:00:00",
+      "ultima_origem": "2026-10-29T23:00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00",
+      "versao": "v1"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_bruto",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00+00:00",
+      "versao": "v2"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00+00:00",
+      "versao": "v3"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_10",
+        "ridge_100",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-29T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4293,
+      "primeira_origem": "2025-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-01-01T04:00:00+00:00",
+      "ultima_origem": "2025-06-28T23:00:00+00:00",
+      "ultimo_alvo": "2025-06-30T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-30T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 4365,
+      "primeira_origem": "2025-07-01T03:00:00+00:00",
+      "primeiro_alvo": "2025-07-01T04:00:00+00:00",
+      "ultima_origem": "2025-12-29T23:00:00+00:00",
+      "ultimo_alvo": "2025-12-31T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-30T23:00:00+00:00",
+      "versao": "v4"
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelos": [
+        "ols_estabilizado",
+        "persistencia",
+        "piloto_so_carga",
+        "ridge_1",
+        "sazonal_semanal"
+      ],
+      "n_origens": 7245,
+      "primeira_origem": "2026-01-01T03:00:00+00:00",
+      "primeiro_alvo": "2026-01-01T04:00:00+00:00",
+      "ultima_origem": "2026-10-29T23:00:00+00:00",
+      "ultimo_alvo": "2026-10-31T23:00:00+00:00",
+      "versao": "v4"
+    }
+  ],
+  "maior_desvio_absoluto_por_checagem": {
+    "blocos_48_metricas": 0.005000000000109139,
+    "contagens_publicadas": 0,
+    "particoes_metricas": 0.004488517804247749,
+    "piloto_globais_2_casas": 0.004488517804475123,
+    "piloto_sazonal_2_casas": 0.004974364620920824,
+    "v1_24_globais": 4.746646982312086e-05,
+    "v1_48_globais": 3.536491988143098e-09,
+    "v1_espelho": 0.004952339676495665,
+    "v1_forecast_celula18": 0.004883771968479778,
+    "v1_validacao_celula14": 0.004900000000134241,
+    "v2_24_celulas_4_casas": 4.906505910184933e-05,
+    "v2_24_globais": 1.8189894035458565e-12,
+    "v2_24_passos": 1.8189894035458565e-12,
+    "v2_24_vies_celulas_4_casas": 4.992394426039937e-05,
+    "v2_48_globais": 1.8189894035458565e-12,
+    "v2_48_passos": 1.6041212802520022e-09,
+    "v3_24_globais": 1.8189894035458565e-12,
+    "v3_24_passos": 1.8189894035458565e-12,
+    "v3_48_globais": 1.8189894035458565e-12,
+    "v3_48_passos": 1.8189894035458565e-12,
+    "v3_mae_horario_publicado_vs_global": 0.0010145566106984916,
+    "v4_24_globais": 1.8189894035458565e-12,
+    "v4_24_passos": 1.8189894035458565e-12,
+    "v4_48_globais": 1.8189894035458565e-12,
+    "v4_48_passos": 1.8189894035458565e-12
+  },
+  "membros_zip_sha256": {
+    "/home/versailles/OpenBot/Shared/Transfers/generated/35ce8288-b295-431f-9964-4ff28a4c9944/pacote48_sensibilidade_20261116.zip::resultados48_sensibilidade_20261116_v2/hipotese_Sao_Paulo/previsoes48_verificadas.csv.gz": "1c64733a9d5e0c3eda1f7d7f7fe3a2be85c21ebe331dbad7883c4a7b12012fb9",
+    "/home/versailles/OpenBot/Shared/Transfers/generated/35ce8288-b295-431f-9964-4ff28a4c9944/pacote48_sensibilidade_20261116.zip::resultados48_sensibilidade_20261116_v2/hipotese_UTC/previsoes48_verificadas.csv.gz": "c03b1bd0c982b9f0bbfbd67c9110882907020c9a5e12bfcbad35e5fb731788ad",
+    "/home/versailles/OpenBot/Shared/Transfers/generated/a07f3d32-8a01-435b-b114-1cff38d2f24e/pacote_rodada2_20261116.zip::rodada2_20261116/resultados_sensibilidade_v1/hipotese_Sao_Paulo/previsoes_24h.csv.gz": "7b633680e353c81b080a8a3921097909a84459c9d6172d86eebd304bbe6075a0",
+    "/home/versailles/OpenBot/Shared/Transfers/generated/a07f3d32-8a01-435b-b114-1cff38d2f24e/pacote_rodada2_20261116.zip::rodada2_20261116/resultados_sensibilidade_v1/metricas_por_passo_24h.csv": "1ceb232c6abc1778d76f507133c8cd68cf766720932dea13711ad345f78de092"
+  },
+  "rede": "isolada",
+  "revisao": "T-39",
+  "saidas": {
+    "RESUMO_METRICAS_VERSOES_ANTERIORES.md": {
+      "sha256": "49252036c95d3f1f224c1af4a3f32ab107cfe9d4032533e5e311bcf17cdd04a1"
+    },
+    "disponibilidade_metricas.csv": {
+      "linhas_por_versao": {
+        "piloto": 225,
+        "v1": 197,
+        "v2": 96,
+        "v3": 228,
+        "v4": 32
+      },
+      "linhas_sem_cabecalho": 778,
+      "sha256": "b378f62b8ec543db71d7b35ddd6a73945078705d9c91b0f2c8833fa1625e1295"
+    },
+    "metricas_globais.csv": {
+      "linhas_por_versao": {
+        "piloto": 24,
+        "v1": 50,
+        "v2": 112,
+        "v3": 118,
+        "v4": 118
+      },
+      "linhas_sem_cabecalho": 422,
+      "sha256": "e232147ae05afdbcd4688d28f9999fa5ec46ace74e29b25079d79537ea891f08"
+    },
+    "metricas_por_hora.csv": {
+      "linhas_por_versao": {
+        "v2": 1920,
+        "v3": 1248,
+        "v4": 2832
+      },
+      "linhas_sem_cabecalho": 6000,
+      "sha256": "e29855dd64ed36b03ff5746a4623a85d3efe7ad9f59ed7fe15605b809f2a2aba"
+    },
+    "metricas_por_mes.csv": {
+      "linhas_por_versao": {
+        "v2": 608,
+        "v3": 352,
+        "v4": 860
+      },
+      "linhas_sem_cabecalho": 1820,
+      "sha256": "32aad566381832252b441cb83e29d335949c0d4e4c9f7714db3abd4b9ddf4246"
+    },
+    "metricas_por_passo.csv": {
+      "linhas_por_versao": {
+        "piloto": 336,
+        "v1": 584,
+        "v2": 1632,
+        "v3": 2016,
+        "v4": 2112
+      },
+      "linhas_sem_cabecalho": 6680,
+      "sha256": "442904fb120719bb58f9bb616a9d5e4f1b2245f451b8386b21cdb03d1aed9622"
+    }
+  },
+  "tarefa": "T-36",
+  "unidade": "MWmed"
+}

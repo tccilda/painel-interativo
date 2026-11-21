@@ -6,9 +6,9 @@ import pandas as pd
 import pytest
 
 from components.charts import (
-    calendar_profile_chart, comparison_chart, daily_pattern_chart, degradation_chart,
-    evaluation_comparison_chart, explorer_chart, forecast_chart, history_chart,
-    load_temperature_chart, monthly_chart, residuals_chart, temperature_scatter,
+    calendar_profile_chart, daily_pattern_chart, degradation_chart,
+    explorer_chart, history_chart,
+    load_temperature_chart, monthly_chart, temperature_scatter,
     weekly_pattern_chart,
 )
 from services.pattern_service import aggregate_load_temperature
@@ -48,7 +48,7 @@ def test_future_explorer_omits_observed_target_legend_without_observations():
     json.loads(figure.to_json())
 
 
-@pytest.mark.parametrize("function", [history_chart, daily_pattern_chart, weekly_pattern_chart, comparison_chart, residuals_chart])
+@pytest.mark.parametrize("function", [history_chart, daily_pattern_chart, weekly_pattern_chart])
 def test_existing_charts_support_dynamic_unit_without_changing_data(function):
     frame = sample_frame()
     original = frame.copy(deep=True)
@@ -72,27 +72,6 @@ def test_single_observation_and_isolated_points_remain_visible():
     assert isolated.data[0].marker.size[0] > 0
     with_gap = history_chart(sample_frame().iloc[[0, 1, 3]])
     assert with_gap.data[0].marker.size[-1] > 0
-
-
-def test_forecast_chart_excludes_observations_after_emission():
-    frame = sample_frame()
-    figure = forecast_chart(frame, frame, pd.Timestamp("2026-01-01T01:00Z"), unit="MWmed")
-    assert len(figure.data[0].y) == 2
-    assert len(figure.data[1].y) == 2
-    assert "MWmed" in figure.layout.yaxis.title.text
-
-
-def test_comparison_preserves_metric_values_and_method_labels():
-    summary = pd.DataFrame({
-        "model_label": ["24 h"] * 2, "method": ["Modelo", "Persistência"],
-        "segment": ["1–24 h"] * 2, "mae": [10., 20.], "rmse": [12., 23.],
-    })
-    figure = evaluation_comparison_chart(summary)
-    assert figure.layout.barmode == "group"
-    assert list(figure.data[0].y) == [10., 20.]
-    assert "Persistência" in figure.data[0].x[1]
-    assert "MWmed" in figure.layout.yaxis.title.text
-    json.loads(figure.to_json())
 
 
 def test_error_plot_uses_integer_step_instead_of_fractional_elapsed_lead():
@@ -217,8 +196,8 @@ def test_monthly_chart_orders_years_chronologically():
 
 
 @pytest.mark.parametrize("function", [
-    history_chart, daily_pattern_chart, weekly_pattern_chart, comparison_chart, residuals_chart,
-    evaluation_comparison_chart, degradation_chart, temperature_scatter, load_temperature_chart,
+    history_chart, daily_pattern_chart, weekly_pattern_chart,
+    degradation_chart, temperature_scatter, load_temperature_chart,
     calendar_profile_chart, monthly_chart,
 ])
 def test_empty_charts_explain_absence_without_dummy_series(function):

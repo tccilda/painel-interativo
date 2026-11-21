@@ -128,35 +128,6 @@ def _add_line(
     ))
 
 
-def forecast_chart(
-    predictions: pd.DataFrame,
-    history: pd.DataFrame | None = None,
-    issued_at: pd.Timestamp | None = None,
-    timezone: str = DEFAULT_TIMEZONE,
-    unit: str = "MW",
-) -> go.Figure:
-    """Exibe histórico até a emissão e previsões estritamente após a emissão."""
-    if predictions.empty and (history is None or history.empty):
-        return _empty_chart("Curva de carga", timezone)
-    figure = _base_chart("Curva de carga", x_title=f"Data/hora local · {timezone}", y_title=f"Carga ({unit})")
-    future = predictions.copy()
-    past = history.copy() if history is not None else pd.DataFrame()
-    if issued_at is not None:
-        origin = pd.Timestamp(issued_at)
-        if origin.tzinfo is None:
-            raise ValueError("A data de emissão deve conter fuso horário.")
-        origin = origin.tz_convert("UTC")
-        if not future.empty:
-            future = future.loc[pd.to_datetime(future["timestamp"], utc=True) > origin]
-        if not past.empty:
-            past = past.loc[pd.to_datetime(past["timestamp"], utc=True) <= origin]
-        _mark_issuance(figure, origin, timezone)
-    _add_line(figure, past, "observed_load", "Carga observada", NAVY, timezone, unit=unit)
-    _add_line(figure, future, "predicted_load", "Carga prevista", TEAL, timezone, dash="dash", unit=unit)
-    figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
-    return figure
-
-
 def history_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE, unit: str = "MW") -> go.Figure:
     if observations.empty:
         return _empty_chart("Carga observada no período", timezone)
@@ -182,6 +153,10 @@ def daily_pattern_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIME
         connectgaps=False,
     ))
     figure.update_xaxes(tickmode="array", tickvals=list(range(0, 24, 3)), ticktext=[f"{hour:02d}h" for hour in range(0, 24, 3)])
+    daily = summary["mean"].dropna()
+    if not daily.empty and daily.min() < daily.max():
+        for label, hour, offset in (("Maior média", daily.idxmax(), -30), ("Menor média", daily.idxmin(), 28)):
+            figure.add_annotation(x=hour, y=daily[hour], text=f"{label} · {hour:02d} h", showarrow=True, ay=offset)
     figure.update_layout(showlegend=False, margin={"b": 48})
     return figure
 
@@ -202,35 +177,6 @@ def weekly_pattern_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIM
     figure.update_xaxes(categoryorder="array", categoryarray=WEEKDAYS)
     figure.update_yaxes(rangemode="tozero")
     figure.update_layout(showlegend=False, margin={"b": 48})
-    return figure
-
-
-def comparison_chart(aligned: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE, unit: str = "MW") -> go.Figure:
-    if aligned.empty:
-        return _empty_chart("Observado × previsto", timezone)
-    figure = _base_chart("Observado × previsto", x_title=f"Data/hora local · {timezone}", y_title=f"Carga ({unit})")
-    _add_line(figure, aligned, "observed_load", "Carga observada", NAVY, timezone, unit=unit)
-    _add_line(figure, aligned, "predicted_load", "Carga prevista", TEAL, timezone, dash="dash", unit=unit)
-    figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
-    return figure
-
-
-def residuals_chart(aligned: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE, unit: str = "MW") -> go.Figure:
-    if aligned.empty:
-        return _empty_chart("Resíduos no período", timezone)
-    figure = _base_chart(
-        "Resíduos · observado − previsto", x_title=f"Data/hora local · {timezone}", y_title=f"Resíduo ({unit})",
-    )
-    ordered = aligned.sort_values("timestamp")
-    local = _local_times(ordered["timestamp"], timezone)
-    figure.add_trace(go.Bar(
-        x=local.dt.tz_localize(None), y=ordered["residual"],
-        customdata=local.dt.strftime("%d/%m/%Y %H:%M · UTC%z"), name="Observado − previsto",
-        marker_color=[TEAL if value >= 0 else RED for value in ordered["residual"]],
-        hovertemplate="%{customdata}<br>Resíduo: <b>%{y:,.2f} " + unit + "</b><extra></extra>",
-    ))
-    figure.add_hline(y=0, line_color=MUTED, line_width=1)
-    figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
     return figure
 
 
@@ -271,29 +217,6 @@ def explorer_chart(
     _mark_issuance(figure, issued_at, timezone)
     figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
     figure.update_layout(margin={"b": 70})
-    return figure
-
-
-def evaluation_comparison_chart(summary: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
-    """Barras dos erros já calculados pelos serviços, sem agregar amostras."""
-    if summary.empty or not summary[["mae", "rmse"]].notna().any().any():
-        return _empty_chart("MAE e RMSE por método", DEFAULT_TIMEZONE)
-    figure = _base_chart("MAE e RMSE por método", x_title="Modelo · método · segmento", y_title=f"Erro ({unit})")
-    labels = []
-    for row in summary.to_dict("records"):
-        label = str(row.get("model_label", f"{row.get('horizon_hours', '')} h"))
-        if "method" in row:
-            label += " · " + str(row["method"])
-        if "segment" in row:
-            label += "<br>" + str(row["segment"])
-        labels.append(label)
-    for metric, color in (("mae", TEAL), ("rmse", NAVY)):
-        figure.add_trace(go.Bar(
-            x=labels, y=summary[metric], name=metric.upper(), marker_color=color,
-            hovertemplate="%{x}<br>" + metric.upper() + ": <b>%{y:,.2f} " + unit + "</b><extra></extra>",
-        ))
-    figure.update_layout(barmode="group", height=430)
-    figure.update_yaxes(rangemode="tozero")
     return figure
 
 
@@ -360,7 +283,7 @@ def temperature_scatter(frame: pd.DataFrame, unit: str = "MWmed", timezone: str 
         figure.add_trace(go.Scattergl(
             x=rows["temperature_c"], y=rows["observed_load"], mode="markers", name=str(station),
             customdata=time_labels,
-            marker={"color": colors[index % len(colors)], "opacity": 0.30, "size": 4},
+            marker={"color": colors[index % len(colors)], "opacity": 0.55, "size": 4},
             hovertemplate="%{customdata}<br>Temperatura: %{x:.1f} °C<br>Carga: <b>%{y:,.2f} " + unit + "</b><extra>%{fullData.name}</extra>",
         ))
     figure.update_layout(showlegend=frame["station"].nunique() > 1 if "station" in frame else False)
@@ -398,7 +321,7 @@ def calendar_profile_chart(profile: pd.DataFrame, unit: str = "MWmed") -> go.Fig
         "dia_util": "Dia útil", "fim_de_semana": "Fim de semana", "feriado": "Feriado",
         "ponto_facultativo": "Ponto facultativo", "nao_informado": "Não informado",
     }
-    scopes = {"nacional": "nacional", "estadual": "estadual", "municipal": "municipal", "nenhum": "sem evento", "nao_informado": "escopo não informado"}
+    scopes = {"federal_administracao": "administração pública federal", "nacional": "nacional", "estadual": "estadual", "municipal": "municipal", "nenhum": "sem evento", "nao_informado": "escopo não informado"}
     colors = [NAVY, TEAL, "#7751A8", "#9C5700", RED, "#52657A"]
     for index, ((day_type, scope), rows) in enumerate(profile.groupby(["day_type", "holiday_scope"], sort=True)):
         rows = rows.set_index("hour").reindex(range(24))
@@ -442,4 +365,15 @@ def monthly_chart(monthly: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
     ))
     figure.update_xaxes(type="date", tickformat="%m/%Y")
     figure.update_layout(showlegend=False, margin={"b": 48})
+    return figure
+
+
+def annual_chart(annual: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
+    figure = _base_chart("Média anual no período selecionado", x_title="Ano", y_title=f"Carga média ({unit})")
+    figure.add_trace(go.Bar(
+        x=annual["year"].astype(str).tolist(), y=annual["mean"], customdata=annual["count"],
+        marker_color=TEAL,
+        hovertemplate="%{x}<br>Carga média: <b>%{y:,.2f} " + unit + "</b><br>%{customdata:,.0f} horas observadas<extra></extra>",
+    ))
+    figure.update_xaxes(type="category")
     return figure

@@ -41,13 +41,6 @@ def test_runtime_can_be_structurally_ready_without_claiming_real_data(tmp_path):
     report = check_public_bundle(tmp_path, public_files(tmp_path))
     assert report.ok and report.selected_files == len(REQUIRED_PUBLIC_FILES)
     assert report.demo_verified_files == 0
-    assert report.municipal_data == "not_available_or_not_approved"
-
-
-def test_municipal_data_requirement_does_not_fabricate_approval(tmp_path):
-    report = check_public_bundle(tmp_path, public_files(tmp_path), require_municipal_data=True)
-    assert not report.ok
-    assert any("nenhuma base municipal real" in error for error in report.errors)
 
 
 def test_missing_runtime_file_in_selection_or_on_disk_is_reported(tmp_path):

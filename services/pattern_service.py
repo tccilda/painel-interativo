@@ -42,24 +42,27 @@ def weekly_profile(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE)
     return _profile(observations, "weekday", timezone)
 
 
-def seasonal_profiles(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE) -> dict[str, pd.DataFrame]:
-    """Perfis diários, semanais e evolução mensal, sem misturar meses de anos distintos."""
-    daily = daily_profile(observations, timezone).reset_index()
-    weekly = weekly_profile(observations, timezone).reset_index()
+def monthly_profile(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE) -> pd.DataFrame:
+    """Evolução mensal por ano e mês civil."""
     if observations.empty:
-        monthly = pd.DataFrame({
+        return pd.DataFrame({
             "month": pd.Series(dtype=str), "year": pd.Series(dtype="int64"),
             "mean": pd.Series(dtype=float), "count": pd.Series(dtype="int64"),
         })
-    else:
-        frame = observations[["timestamp", "observed_load"]].copy()
-        local = pd.to_datetime(frame["timestamp"], utc=True).dt.tz_convert(timezone)
-        frame["month"] = local.dt.strftime("%Y-%m")
-        frame["year"] = local.dt.year
-        monthly = frame.groupby(["month", "year"], sort=True)["observed_load"].agg(
-            mean=_stable_mean, count="count",
-        ).reset_index()
-    return {"daily": daily, "weekly": weekly, "monthly": monthly}
+    frame = observations[["timestamp", "observed_load"]].copy()
+    local = pd.to_datetime(frame["timestamp"], utc=True).dt.tz_convert(timezone)
+    frame["month"] = local.dt.strftime("%Y-%m")
+    frame["year"] = local.dt.year
+    return frame.groupby(["month", "year"], sort=True)["observed_load"].agg(
+        mean=_stable_mean, count="count",
+    ).reset_index()
+
+
+def annual_profile(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE) -> pd.DataFrame:
+    years = pd.to_datetime(observations["timestamp"], utc=True).dt.tz_convert(timezone).dt.year
+    return observations.groupby(years.rename("year"))["observed_load"].agg(
+        mean=_stable_mean, count="count",
+    ).reset_index()
 
 
 def _regional(frame: pd.DataFrame, region: str) -> pd.DataFrame:
@@ -199,6 +202,10 @@ def calendar_profile(
     if calendar.empty:
         observed["day_type"] = "nao_informado"
         observed["holiday_scope"] = "nao_informado"
+    elif "timestamp" in calendar:
+        events = _regional(calendar, region)[["timestamp", "day_type", "holiday_scope"]]
+        observed = observed.merge(events, on="timestamp", how="left", validate="one_to_one")
+        observed[["day_type", "holiday_scope"]] = observed[["day_type", "holiday_scope"]].fillna("nao_informado")
     else:
         events = _regional(calendar, region)[["date", "day_type", "holiday_scope"]].copy()
         events["date"] = pd.to_datetime(events["date"]).dt.date

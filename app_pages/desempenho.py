@@ -30,7 +30,12 @@ def _comparison_table(detail, reference, unit, synthetic):
 
 
 def render() -> None:
-    bundle, settings = page_header("Desempenho e Erros")
+    if st.session_state.get("version_catalog_mode"):
+        from components.model_versions_views import render_evolution
+
+        render_evolution()
+        return
+    bundle, settings = page_header("Avaliação de Desempenho e Erros")
     catalog = get_catalog(bundle, settings)
     if catalog.empty:
         st.info("Nenhuma previsão disponível para avaliação.")

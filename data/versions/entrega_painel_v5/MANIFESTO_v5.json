@@ -1,0 +1,685 @@
+{
+  "versao": "v5",
+  "versao_esquema": "1.0.0",
+  "alvo_id": "ONS_SECO_piloto",
+  "unidade": "MWmed",
+  "escopo_avaliacao": "retrospectiva_nao_cego",
+  "arquivos": {
+    "previsoes_24h_v5.csv": {
+      "linhas": 1938816,
+      "sha256": "528d8a52273d526914897204d3762a11ce40c65878accbd9826188166387300b",
+      "bytes": 566809083
+    },
+    "previsoes_48h_v5.csv": {
+      "linhas": 4580064,
+      "sha256": "53c3354c042621e02fb8415e8d568a4d4c1d90d86b53f41f24525e7ff43354c8",
+      "bytes": 1335978913
+    },
+    "serie_horaria_auditada_v5.csv": {
+      "linhas": 49674,
+      "sha256": "b352dea7c44d859ae16a90822f066af6b2982d532dadccd21f6035b20752cc6b",
+      "bytes": 11240486
+    },
+    "eventos_calendario_v5.csv": {
+      "linhas": 136,
+      "sha256": "bfed563d44b257ef425aa590d53cc7e2eb8408878fe650ae7f92e667b34c8c1b",
+      "bytes": 94956
+    },
+    "eventos_pendentes_v5.csv": {
+      "linhas": 3,
+      "sha256": "1f925b85135077841675d574320801d7e14800993301ac9ceea3b58c4d480499",
+      "bytes": 1981
+    },
+    "metricas_globais_v5.csv": {
+      "linhas": 118,
+      "sha256": "5d630b1eb3e88b457eb6702f36a91c3d329db070a695ee3e436b09cd870c861c",
+      "bytes": 26813
+    },
+    "metricas_por_passo_v5.csv": {
+      "linhas": 2112,
+      "sha256": "263086f96cfcf5248c6ae5d0eca2a4b95027faffa7a06093d90f7c4375cc9aff",
+      "bytes": 423050
+    },
+    "metricas_por_hora_v5.csv": {
+      "linhas": 2832,
+      "sha256": "9933ec504f3ae04ed3e213e6d40be0bdc28d51075502af4a1c1d6374d375eef8",
+      "bytes": 622627
+    },
+    "metricas_por_mes_v5.csv": {
+      "linhas": 860,
+      "sha256": "66e8a92390a183a0b5cc7bd3dcd728c1a39b343f14f73953dd7a224804dd783c",
+      "bytes": 189158
+    },
+    "comparacao_v4_v5_pares_comuns.csv": {
+      "linhas": 118,
+      "sha256": "080bfbfe6907679caa4ad49e8e529eb34a0dfc67a80bbb4557a9a7e5d92a7f4a",
+      "bytes": 38407
+    }
+  },
+  "entradas_sha256": {
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_24h_2024_2026_v3.ipynb": "da62612185784650ca93e64af12c7323584cb5796a2cd41d7b60fdc0ac1d8225",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v3/metricas_24h_v3.csv": "175b42206722b2b1653056e18a74851ce1c19e26b544644165c9921a524d8219",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v3/erros_por_passo_24h_v3.csv": "6727a77fa9cfe5c101090fba1a1b5380f89b4107415de976be3cf34787d26633",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/curva_carga/CURVA_CARGA_2024.csv": "0c7e02591887591ec0a1e758eeb744dcd24c69e91c09e032ce7772838676cc32",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/curva_carga/CURVA_CARGA_2025.csv": "69a3d2560bf111e46d1fa356ee4be7c917ca89bf53ae16ab1af9f9e7477ff4c4",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/curva_carga/CURVA_CARGA_2026.csv": "30dd8ff9417d75e30c85eac14027f12d3b08e222d85f183c2592c0a3e04ad743",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/INMET_dados_historicos/2024/INMET_SE_RJ_A621_RIO DE JANEIRO - VILA MILITAR_01-01-2024_A_31-12-2024.CSV": "fb15bbbfb45571af8b88e020b42155f253297fa0403b601ea6d904a959c2567b",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/INMET_dados_historicos/2024/INMET_SE_RJ_A601_SEROPEDICA-ECOLOGIA AGRICOLA_01-01-2024_A_31-12-2024.CSV": "53b5b794bbb0782edc865b515143e29c06af94db52f28afa9e0458b567c5e243",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/INMET_dados_historicos/2025/INMET_SE_RJ_A621_RIO DE JANEIRO - VILA MILITAR_01-01-2025_A_31-12-2025.CSV": "54fcb5cc86cb6f0a25d52052aa062bbc4508225d699bc9d455b65f0afa63bcca",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/INMET_dados_historicos/2025/INMET_SE_RJ_A601_SEROPEDICA-ECOLOGIA AGRICOLA_01-01-2025_A_31-12-2025.CSV": "5cd90ab5624b861e3c7c73a552b6cbdf7d727c57434806629374452905529a17",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/INMET_dados_historicos/2026/INMET_SE_RJ_A621_RIO DE JANEIRO - VILA MILITAR_01-01-2026_A_31-10-2026.CSV": "ace736a235e894848c58de83c50ce644692d29935b597d2815b3e8c1b4ee053c",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/EDA/datasets/INMET_dados_historicos/2026/INMET_SE_RJ_A601_SEROPEDICA-ECOLOGIA AGRICOLA_01-01-2026_A_31-10-2026.CSV": "8294ff44ffad568db99efda3fd9da49dda529fa72be6cf8614f87ff6f695f63a",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v2/calendario_diario.csv": "abc2e32684e7ec93b143fc8d715702844c30cc498f09527d21bdbfa3d05e0c88",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v2/eventos_auditados.csv": "f6541e23f022066d5f7889ecba808faf5b97b3528883a93b35f0e279a263d70d",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v2/eventos_pendentes.csv": "c281defe6e650ec4b259d8cfe04a8534212a5b798993a252de3d1c998409c52d",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/apoio_24h/insumos_notebook_v2/metricas_24h.csv": "3b7c04b5edf756060b6a74caacd23c22dba95c8e032c3aafff3d2fa6e140ee94",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/modelo_48h_2024_2026_v3.ipynb": "f4bc12daf4af5f121534340e109e1d7f6215f8a8c1fa40c92654a7f43bb6061b",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v3/metricas48_consolidadas_v3.csv": "a091466ba5fd68b29af1dc59a0b39bd7979a4d8924b1c656d275bdf9536e0b49",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v3/erros_por_passo_48h_v3.csv": "7d2b97e4214d2d31af9fb9bed9057bc6ee535664e63c62cf49d2a289f089089a",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/calendario_diario.csv": "abc2e32684e7ec93b143fc8d715702844c30cc498f09527d21bdbfa3d05e0c88",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/eventos_auditados.csv": "f6541e23f022066d5f7889ecba808faf5b97b3528883a93b35f0e279a263d70d",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/eventos_pendentes.csv": "c281defe6e650ec4b259d8cfe04a8534212a5b798993a252de3d1c998409c52d",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/metricas48_consolidadas.csv": "e78cb49bd651c340d762a142cb6dba7607d07244547fb8b97455c7e192d79daa",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/insumos_notebook_v2/erros_por_passo.csv": "b2fe7297dee6e5bcda5c43451b382957eccca267a1a49a9f0635c0366ff02c5c",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/previsoes_48h_2025_2026.csv": "f3b8a017b9d2d0e29552f9674f06301a5b564d5b0121c4e248c999a8b1d959cd",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/05_apoio_48h/00_revisao_roberto/candidato_v1/saida_20261116/comparacoes_contagens_por_bloco.csv": "d538476ededc9b96d0eba3f4ab6a26e6a14187be73876c20db2332385e25f552",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/referencia_v4_replay/modelo_24h_2024_2026_v4.ipynb": "a1ef5b3771026e1f94229f37723a2d18df8c7bbf417295b9d17320c20f9640db",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/referencia_v4_replay/modelo_48h_2024_2026_v4.ipynb": "a4e28136fd82e1208a86d968d666e4a1653596f54bf73f683add809ba27ac0fd",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/manifesto_ambiente_v4.json": "eb56a933916d739a190d82ba00242cd8f0529390f4e96f96d604b50404815b8f",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/referencia_v4_replay/pares_v4_24h.csv.gz": "5843d965ac1e7ccb2f96985e39ea798b9991fe19256cab3976c4e6f493fdf826",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/referencia_v4_replay/pares_v4_48h.csv.gz": "d29caf7ba44fbbaef51af0d622028f86ecdbaefa64702960c1da4979b33e795b",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/calendario_v5/eventos_auditados_v5.csv": "9c1d0e9cf1aa45d67b99fcd1d20cc424fa764c1d39f4c0efcd4db2288cd11a38",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/02_medicoes/calendario_v5/eventos_pendentes_v5.csv": "1f925b85135077841675d574320801d7e14800993301ac9ceea3b58c4d480499",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/reports/04-solucao/ESPECIFICACAO_PACOTE_PAINEL_v5.md": "ff9612712f1b3b329e7059ed9a315468e6613bf6716c52872a8c9188ae3b2d22",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/Validacao_metropolitana/01_fontes/evidencias_oficiais/ons/CON01_EVIDENCIA_ONS.md": "04c1d7d86524e87a3758f4b7bd69621e072cdc4436852fb2779df0f9fb3ea1b1",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/metricas_24h_v4.csv": "c8f9502878a92c168a0e966df20d09804d406db2264de4cf4adb42fd82ec937f",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/erros_por_passo_24h_v4.csv": "925702913c973883bb9bfa13ebc13902bc920f4961de13df777e0a96510fa6cd",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/metricas48_consolidadas_v4.csv": "ff9d1d27b8c00f579089b9d44efd744027fbfd6980489229ed636bfe36a61bb0",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/insumos_notebook_v4/erros_por_passo_48h_v4.csv": "31d8738a0a2b814dc7016f5745132b5fcab93f176e0d9e83a6eb35919f363f89",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/modelo_24h_2024_2026_v4.ipynb": "7c4a283b9d61a42ff30886642cf2a6a6602e3260ac3d32041e859107cb624528",
+    "/home/versailles/Documents/Obsidian Vaults/Auditoria - TCC/candidates/modelos_v4/modelo_48h_2024_2026_v4.ipynb": "a4e28136fd82e1208a86d968d666e4a1653596f54bf73f683add809ba27ac0fd",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/previsoes_24h_2025_2026.csv": "719e91a10d5c7a794884df971a0e14c213513d16b9b0b558f7b9e1959cb10bc2",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/resumo_metricas_24h.csv": "d2f147534f06a93af4a9a24fc5d97c6b9f7b8c843988bf6f0c76564e5bbafbb9",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/resumo_metricas_48h.csv": "b64ac5dfae59ca958c5649aa62b9743a699568d29efe53b1288593877f72db09",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/resumo_metricas.csv": "b21b004ae8a16011a3192520dd80ddb6770dceaf371ee6d115d650392bbc3cea",
+    "/home/versailles/Documents/Obsidian Vaults/TCC - Desenvolvimento/Desenvolvimento/painel/serie_horaria_integrada_2024_2026.csv": "c17ea1c08f70c078f534feaaf60e37a813f87f2a7657980e7a799cbb1e7b59d6"
+  },
+  "notebooks_v5_sha256": {
+    "modelo_24h_2024_2026_v5.ipynb": "4da0cd6b37cc65f8f9ece8d14c86ff2afeadd255daa72a9a6df2ca1332e13089",
+    "modelo_48h_2024_2026_v5.ipynb": "13a4ac1125154b5e5d90b78906e3d682941d2d00f2d3b4dbff024c64fad5ab25"
+  },
+  "ambiente": {
+    "executavel": "/home/versailles/Documents/UVA/Auditoria-TCC-20261120/envs/reproduction/bin/python",
+    "python": "3.14.6",
+    "bibliotecas": {
+      "numpy": "2.4.6",
+      "pandas": "3.0.3",
+      "scipy": "1.18.0",
+      "scikit-learn": "1.9.0",
+      "nbclient": "0.11.0",
+      "nbformat": "5.10.4"
+    },
+    "threads": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1"
+    }
+  },
+  "relogio": {
+    "status": "fuso_e_borda_oficiais_indeterminados",
+    "cenarios": {
+      "hipotese_UTC": {
+        "fuso_interpretado": "UTC",
+        "status": "hipotese_paralela"
+      },
+      "hipotese_Sao_Paulo": {
+        "fuso_interpretado": "America/Sao_Paulo",
+        "status": "hipotese_paralela"
+      }
+    },
+    "fonte": "CON01_EVIDENCIA_ONS.md / DicionarioDados_CurvaCarga v1.2 / CKAN",
+    "zona_calendario": "America/Sao_Paulo",
+    "nota": "UTC no CKAN identifica metadados do catálogo; o fuso de din_instante segue em aberto."
+  },
+  "contrato": {
+    "snapshots": "fechados",
+    "posicao": "inicio",
+    "lag_carga_h": 0,
+    "atraso_horas": 0,
+    "CON_02": "adiado",
+    "operacional": false
+  },
+  "calendario": {
+    "versoes": 68,
+    "subnacionais": {
+      "municipal_rio": 10,
+      "estadual_rj": 8
+    },
+    "ressalva": "18 linhas subnacionais não representam todo o ONS SE/CO.",
+    "vigencia": "conhecido_desde <= origem_t < conhecido_ate; fim ausente é aberto",
+    "D_mais_1": "hipótese conservadora quando registrada",
+    "pendentes": [
+      {
+        "data_local": "2024-03-29",
+        "nome_evento": "Paixão de Cristo — eventual feriado civil local",
+        "tipo_proposto": "feriado_local_a_confirmar",
+        "esfera_proposta": "municipal_territorios_SECO_nao_auditados",
+        "ato_ou_fonte": "Lei 9.093/1995, art. 2º",
+        "fonte_url": "https://www.planalto.gov.br/ccivil_03/leis/l9093.htm",
+        "alcance_horario_pendente": "não definido",
+        "motivo_pendencia": "MANTER_EXCLUIDO (T-17b): Lei Federal 9.093/1995 art. 2º (DOU 13/09/1995) remete a declaração de feriado religioso a leis municipais locais; sem auditoria das leis municipais dos territórios do subsistema ONS SE/CO. Mantido apenas feriado_administrativo_federal em eventos_auditados_v5.csv.",
+        "conhecido_desde": "",
+        "acao": "MANTER_EXCLUIDO; não incluir como feriado civil municipal/local até auditoria municipal SE/CO"
+      },
+      {
+        "data_local": "2025-04-18",
+        "nome_evento": "Paixão de Cristo — eventual feriado civil local",
+        "tipo_proposto": "feriado_local_a_confirmar",
+        "esfera_proposta": "municipal_territorios_SECO_nao_auditados",
+        "ato_ou_fonte": "Lei 9.093/1995, art. 2º",
+        "fonte_url": "https://www.planalto.gov.br/ccivil_03/leis/l9093.htm",
+        "alcance_horario_pendente": "não definido",
+        "motivo_pendencia": "MANTER_EXCLUIDO (T-17b): Lei Federal 9.093/1995 art. 2º (DOU 13/09/1995) remete a declaração de feriado religioso a leis municipais locais; sem auditoria das leis municipais dos territórios do subsistema ONS SE/CO. Mantido apenas feriado_administrativo_federal em eventos_auditados_v5.csv.",
+        "conhecido_desde": "",
+        "acao": "MANTER_EXCLUIDO; não incluir como feriado civil municipal/local até auditoria municipal SE/CO"
+      },
+      {
+        "data_local": "2026-04-03",
+        "nome_evento": "Paixão de Cristo — eventual feriado civil local",
+        "tipo_proposto": "feriado_local_a_confirmar",
+        "esfera_proposta": "municipal_territorios_SECO_nao_auditados",
+        "ato_ou_fonte": "Lei 9.093/1995, art. 2º",
+        "fonte_url": "https://www.planalto.gov.br/ccivil_03/leis/l9093.htm",
+        "alcance_horario_pendente": "não definido",
+        "motivo_pendencia": "MANTER_EXCLUIDO (T-17b): Lei Federal 9.093/1995 art. 2º (DOU 13/09/1995) remete a declaração de feriado religioso a leis municipais locais; sem auditoria das leis municipais dos territórios do subsistema ONS SE/CO. Mantido apenas feriado_administrativo_federal em eventos_auditados_v5.csv.",
+        "conhecido_desde": "",
+        "acao": "MANTER_EXCLUIDO; não incluir como feriado civil municipal/local até auditoria municipal SE/CO"
+      }
+    ]
+  },
+  "grade": {
+    "horas_por_cenario": 24837,
+    "inicio": "2024-01-01T03:00:00Z",
+    "fim": "2026-10-31T23:00:00Z"
+  },
+  "janelas": {
+    "validacao_1s2025": {
+      "origens": 4293,
+      "inicio": "2025-01-01T03:00:00Z",
+      "fim": "2025-06-28T23:00:00Z"
+    },
+    "teste_2025": {
+      "origens": 4365,
+      "inicio": "2025-07-01T03:00:00Z",
+      "fim": "2025-12-29T23:00:00Z"
+    },
+    "retrospectiva_2026": {
+      "origens": 7245,
+      "inicio": "2026-01-01T03:00:00Z",
+      "fim": "2026-10-29T23:00:00Z"
+    }
+  },
+  "treinamento": {
+    "origens": {
+      "treino_2024": 8565,
+      "reajuste_ate_1s2025": 12909,
+      "refit_2024_2025": 17325
+    },
+    "estimadores": {
+      "24h": [
+        "ols_estabilizado",
+        "ridge_10",
+        "ridge_100",
+        "piloto_so_carga"
+      ],
+      "48h": [
+        "ols_estabilizado",
+        "ridge_1",
+        "piloto_so_carga"
+      ]
+    },
+    "n_atributos": {
+      "24h_integrado": 169,
+      "48h_integrado": 241,
+      "piloto": 57
+    },
+    "lags_carga_h": 57,
+    "lags_meteo_h": 9
+  },
+  "selecao": {
+    "criterio": "menor MAE na validação 1S2025; em empate, ordem OLS seguida por Ridge em alfa crescente",
+    "escolhas": [
+      {
+        "cenario": "hipotese_UTC",
+        "horizonte_h": 24,
+        "escolhido_v4": "ols_estabilizado",
+        "escolhido_v5": "ols_estabilizado",
+        "mudou": false,
+        "mae_validacao_v5": {
+          "ols_estabilizado": 1090.818236479213,
+          "ridge_10": 1099.4156000509709,
+          "ridge_100": 1142.3561647860888
+        }
+      },
+      {
+        "cenario": "hipotese_Sao_Paulo",
+        "horizonte_h": 24,
+        "escolhido_v4": "ols_estabilizado",
+        "escolhido_v5": "ols_estabilizado",
+        "mudou": false,
+        "mae_validacao_v5": {
+          "ols_estabilizado": 1089.7913553040728,
+          "ridge_10": 1098.7053831232622,
+          "ridge_100": 1136.9193048091597
+        }
+      },
+      {
+        "cenario": "hipotese_UTC",
+        "horizonte_h": 48,
+        "escolhido_v4": "ols_estabilizado",
+        "escolhido_v5": "ols_estabilizado",
+        "mudou": false,
+        "mae_validacao_v5": {
+          "ols_estabilizado": 1305.4497732897148,
+          "ridge_1": 1305.8647747369525
+        }
+      },
+      {
+        "cenario": "hipotese_Sao_Paulo",
+        "horizonte_h": 48,
+        "escolhido_v4": "ols_estabilizado",
+        "escolhido_v5": "ols_estabilizado",
+        "mudou": false,
+        "mae_validacao_v5": {
+          "ols_estabilizado": 1300.2198344364106,
+          "ridge_1": 1300.691755239421
+        }
+      }
+    ]
+  },
+  "contagens_por_modelo": [
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "ridge_10",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "ridge_100",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4365,
+      "n_pares": 104760
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4365,
+      "n_pares": 104760
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelo": "ols_estabilizado",
+      "n_origens": 7245,
+      "n_pares": 173880
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelo": "piloto_so_carga",
+      "n_origens": 7245,
+      "n_pares": 173880
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "ridge_10",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "modelo": "ridge_100",
+      "n_origens": 4293,
+      "n_pares": 103032
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4365,
+      "n_pares": 104760
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4365,
+      "n_pares": 104760
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelo": "ols_estabilizado",
+      "n_origens": 7245,
+      "n_pares": 173880
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "modelo": "piloto_so_carga",
+      "n_origens": 7245,
+      "n_pares": 173880
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4293,
+      "n_pares": 206064
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4293,
+      "n_pares": 206064
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelo": "ridge_1",
+      "n_origens": 4293,
+      "n_pares": 206064
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4365,
+      "n_pares": 209520
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4365,
+      "n_pares": 209520
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelo": "ridge_1",
+      "n_origens": 4365,
+      "n_pares": 209520
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelo": "ols_estabilizado",
+      "n_origens": 7245,
+      "n_pares": 347760
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelo": "piloto_so_carga",
+      "n_origens": 7245,
+      "n_pares": 347760
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelo": "ridge_1",
+      "n_origens": 7245,
+      "n_pares": 347760
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4293,
+      "n_pares": 206064
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4293,
+      "n_pares": 206064
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "modelo": "ridge_1",
+      "n_origens": 4293,
+      "n_pares": 206064
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelo": "ols_estabilizado",
+      "n_origens": 4365,
+      "n_pares": 209520
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelo": "piloto_so_carga",
+      "n_origens": 4365,
+      "n_pares": 209520
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "modelo": "ridge_1",
+      "n_origens": 4365,
+      "n_pares": 209520
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelo": "ols_estabilizado",
+      "n_origens": 7245,
+      "n_pares": 347760
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelo": "piloto_so_carga",
+      "n_origens": 7245,
+      "n_pares": 347760
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "modelo": "ridge_1",
+      "n_origens": 7245,
+      "n_pares": 347760
+    }
+  ],
+  "amostras_leitor": [
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "origem_t": "2025-01-01T03:00:00Z",
+      "passos": 24
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "origem_t": "2025-07-01T03:00:00Z",
+      "passos": 24
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "origem_t": "2026-01-01T03:00:00Z",
+      "passos": 24
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 24,
+      "origem_t": "2025-01-01T03:00:00Z",
+      "passos": 24
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 24,
+      "origem_t": "2025-07-01T03:00:00Z",
+      "passos": 24
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 24,
+      "origem_t": "2026-01-01T03:00:00Z",
+      "passos": 24
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "origem_t": "2025-01-01T03:00:00Z",
+      "passos": 48
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "origem_t": "2025-07-01T03:00:00Z",
+      "passos": 48
+    },
+    {
+      "cenario": "hipotese_UTC",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "origem_t": "2026-01-01T03:00:00Z",
+      "passos": 48
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "validacao_1s2025",
+      "horizonte_h": 48,
+      "origem_t": "2025-01-01T03:00:00Z",
+      "passos": 48
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "teste_2025",
+      "horizonte_h": 48,
+      "origem_t": "2025-07-01T03:00:00Z",
+      "passos": 48
+    },
+    {
+      "cenario": "hipotese_Sao_Paulo",
+      "etapa": "retrospectiva_2026",
+      "horizonte_h": 48,
+      "origem_t": "2026-01-01T03:00:00Z",
+      "passos": 48
+    }
+  ],
+  "comparacao": {
+    "versao_ref": "v4",
+    "atol": 1e-08,
+    "rtol": 0,
+    "exclusao_cobertura": "nenhuma por janela ou chave",
+    "chave": [
+      "origem_ons_raw",
+      "passo_h"
+    ],
+    "selecionado_vs_selecionado": "adicionado quando a seleção muda"
+  },
+  "painel_historico": {
+    "adocao": "pendente_da_frente_do_painel",
+    "originais_preservados": true
+  },
+  "portes_aceite": [
+    "estrutura/identidade/tipos/domínios",
+    "chaves e contagens",
+    "observados/referências com série",
+    "flags e vigência",
+    "métricas recomputadas dos pares",
+    "junção v4/v5 independente",
+    "12 emissões, virada, corte D+1",
+    "metadado ausente, chave duplicada e manifesto incompleto",
+    "preservação"
+  ]
+}

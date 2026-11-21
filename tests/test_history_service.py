@@ -7,7 +7,8 @@ import pandas as pd
 import pytest
 
 from services.data_loader import load_data
-from services.history_service import filter_history, forecast_history, future_observation_count, history_summary, region_history
+from services.analysis_service import explorer_frame
+from services.history_service import filter_history, future_observation_count, region_history
 
 
 def test_filter_respects_local_day_and_includes_last_hour():
@@ -29,11 +30,10 @@ def test_filter_rejects_reversed_dates():
 def test_forecast_context_cannot_include_later_observations():
     bundle = load_data("demo")
     forecast = min(bundle.forecasts, key=lambda run: run.issued_at)
-    history = forecast_history(forecast, bundle.observations)
+    history = explorer_frame(forecast, bundle.observations).query('phase == "histórico"')
     assert len(history) == 72
     assert history["timestamp"].max() == forecast.issued_at
     assert (history["timestamp"] <= forecast.issued_at).all()
-    assert history["region"].eq(forecast.region).all()
 
 
 def test_gaps_are_reported_without_filling():
@@ -42,7 +42,7 @@ def test_gaps_are_reported_without_filling():
         "observed_load": [100.0, 200.0],
         "region": ["A", "A"], "unit": ["MW", "MW"],
     })
-    assert history_summary(frame) == {"count": 2, "mean_load": 150.0, "peak_load": 200.0, "missing_hours": 1}
+    assert len(region_history(frame, "A")) == 2
     assert region_history(frame, "B").empty
     assert len(frame) == 2
 
@@ -58,14 +58,6 @@ def test_future_dated_observations_are_not_presented_as_known():
     assert future_observation_count(frame, "A", as_of=pd.Timestamp("2026-01-02T00:00Z")) == 1
 
 
-def test_history_mean_handles_large_finite_loads():
-    frame = pd.DataFrame({
-        "timestamp": pd.date_range("2026-01-01", periods=2, freq="h", tz="UTC"),
-        "observed_load": [1e308, 1e308],
-    })
-    assert history_summary(frame)["mean_load"] == pytest.approx(1e308)
-
-
 def test_forecast_history_preserves_nanosecond_window_boundary():
     from tests.test_analysis_service import make_forecast
 
@@ -74,7 +66,7 @@ def test_forecast_history_preserves_nanosecond_window_boundary():
         "timestamp": pd.date_range("2025-01-05T00:00:00.000000001Z", periods=73, freq="h"),
         "observed_load": 100.0, "region": forecast.region, "unit": forecast.unit,
     })
-    history = forecast_history(forecast, frame, hours=72)
+    history = explorer_frame(forecast, frame, history_hours=72).query('phase == "histórico"')
     assert len(history) == 72
     assert history["timestamp"].min() == pd.Timestamp("2025-01-05T01:00:00.000000001Z")
     assert history["timestamp"].max() == forecast.issued_at

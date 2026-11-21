@@ -41,7 +41,7 @@ bundle = load_data({mode!r})
 region = bundle.forecasts[0].region if bundle.forecasts else (bundle.observations["region"].iloc[0] if not bundle.observations.empty else None)
 unit = bundle.forecasts[0].unit if bundle.forecasts else (bundle.observations["unit"].iloc[0] if not bundle.observations.empty else "MWmed")
 st.session_state["data_bundle"] = bundle
-st.session_state["app_settings"] = SidebarSettings({mode!r}, {horizon}, region, "Município do Rio de Janeiro", unit=unit)
+st.session_state["app_settings"] = SidebarSettings({mode!r}, {horizon}, region, unit=unit)
 st.session_state["selected_horizon"] = {horizon}
 render()
 '''
@@ -52,14 +52,15 @@ def test_entrypoint_horizon_and_source_switch(monkeypatch):
     monkeypatch.delenv("ENERGY_FORECAST_ALLOW_DEMO", raising=False)
     app = AppTest.from_file(ROOT / "streamlit_app.py").run(timeout=60)
     assert not app.exception
-    assert app.title[0].value == "Explorador de Previsões"
-    assert app.selectbox(key="source_mode").value == "Arquivos dos modelos"
+    assert app.title[0].value == "Monitor de Previsão"
+    assert any(item.value == "*Painel Interativo de Previsão de Demanda Energética*" for item in app.markdown)
+    assert app.header[0].value == "Explorador de Previsões"
+    assert all(widget.label != "Fonte" for widget in app.selectbox)
     assert not any("Modo demonstração" in item.value for item in app.warning)
     assert not app.metric
     assert not app.dataframe
     assert not app.get("plotly_chart")
     assert any("Nenhuma previsão" in item.value for item in app.info)
-    assert "Demonstração" not in app.selectbox(key="source_mode").options
     monkeypatch.setenv("ENERGY_FORECAST_ALLOW_DEMO", "true")
     app.run(timeout=60)
     app.selectbox(key="source_mode").set_value("Demonstração").run(timeout=60)
@@ -86,8 +87,11 @@ st.session_state["selected_source_result"] = select_data_mode(has_imported={has_
     page.session_state["source_mode"] = "Demonstração"
     page.run(timeout=60)
     assert not page.exception
-    assert page.selectbox(key="source_mode").value == expected
-    assert "Demonstração" not in page.selectbox(key="source_mode").options
+    if has_imported:
+        assert page.selectbox(key="source_mode").value == expected
+        assert "Demonstração" not in page.selectbox(key="source_mode").options
+    else:
+        assert not page.selectbox
     assert page.session_state["selected_source_result"] == ("provided" if has_imported else "real")
 
 
@@ -104,9 +108,8 @@ st.session_state["selected_source_result"] = select_data_mode(allow_demo=allow_d
     assert page.session_state["selected_source_result"] == "demo"
     page.checkbox[0].set_value(False).run(timeout=60)
     assert not page.exception
-    assert page.selectbox(key="source_mode").value == "Arquivos dos modelos"
+    assert not page.selectbox
     assert page.session_state["selected_source_result"] == "real"
-    assert "Demonstração" not in page.selectbox(key="source_mode").options
 
 
 @pytest.mark.parametrize("horizon", [24, 48])
@@ -168,7 +171,7 @@ def test_seasonality_includes_weather_calendar_and_three_years():
     page = render_page("sazonalidade")
     assert not page.exception
     assert set(page.multiselect[0].value) == {2024, 2025, 2026}
-    assert len(page.get("plotly_chart")) == 7
+    assert len(page.get("plotly_chart")) == 8
     assert not page.error
 
 

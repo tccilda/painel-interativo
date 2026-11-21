@@ -4,17 +4,23 @@ import os
 
 import streamlit as st
 
+from services import model_versions
+
 from app_pages import desempenho, explorador, sazonalidade
 from components.sidebar import render_sidebar, select_data_mode
-from services.app_data import imported_config_path, load_app_context
+from services.app_data import has_model_files, imported_config_path, load_app_context
+
+
+APP_NAME = "Monitor de Previsão"
+APP_SUBTITLE = "Painel Interativo de Previsão de Demanda Energética"
 
 
 def main() -> None:
     st.set_page_config(
-        page_title="Energia • Painel de previsão",
+        page_title=APP_NAME,
         page_icon=":material/electric_bolt:",
         layout="wide",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="auto",
     )
     st.markdown(
         """<style>
@@ -35,22 +41,29 @@ def main() -> None:
     # explícita de desenvolvimento/teste, nunca um fallback de dados ausentes.
     mode = select_data_mode(
         has_imported=imported_config_path().is_file(),
+        has_versions=model_versions.enabled(),
+        has_model_files=has_model_files(),
         allow_demo=os.environ.get("ENERGY_FORECAST_ALLOW_DEMO", "").strip().lower() == "true",
     )
-    with st.spinner("Carregando os dados locais…"):
-        bundle, catalog = load_app_context(mode)
-    settings = render_sidebar(bundle, catalog)
-    st.session_state["data_bundle"] = bundle
-    st.session_state["app_settings"] = settings
-    st.session_state["forecast_catalog"] = catalog
+    st.session_state["version_catalog_mode"] = mode == "versions"
+    if mode != "versions":
+        with st.spinner("Carregando os dados locais…"):
+            bundle, catalog = load_app_context(mode)
+        settings = render_sidebar(bundle, catalog)
+        st.session_state["data_bundle"] = bundle
+        st.session_state["app_settings"] = settings
+        st.session_state["forecast_catalog"] = catalog
 
     navigation = st.navigation(
         [
             st.Page(explorador.render, title="Explorador de Previsões", icon=":material/show_chart:", url_path="explorador", default=True),
-            st.Page(desempenho.render, title="Desempenho e Erros", icon=":material/analytics:", url_path="desempenho"),
+            st.Page(desempenho.render, title="Avaliação de Desempenho e Erros", icon=":material/analytics:", url_path="desempenho"),
             st.Page(sazonalidade.render, title="Sazonalidade, Clima e Calendário", icon=":material/calendar_month:", url_path="sazonalidade"),
-        ]
+        ],
+        position="top",
     )
+    st.title(APP_NAME, anchor=False)
+    st.markdown(f"*{APP_SUBTITLE}*")
     navigation.run()
 
 

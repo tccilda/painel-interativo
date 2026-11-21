@@ -15,21 +15,30 @@ from services.metrics_service import calculate_metrics
 
 
 def render() -> None:
-    bundle, settings = page_header("Explorador de Previsões")
-    candidates = get_catalog(bundle, settings)
+    if st.session_state.get("version_catalog_mode"):
+        from components.model_versions_views import render_explorer
+
+        render_explorer(_render_legacy)
+    else:
+        _render_legacy()
+
+
+def _render_legacy(context=None, catalog=None) -> None:
+    bundle, settings = context or page_header("Explorador de Previsões")
+    candidates = get_catalog(bundle, settings) if catalog is None else catalog
     controls = st.columns([1.15, 1, 1])
     available_splits = set(candidates["dataset_split"])
-    splits = [value for value in ("forecast_2026", "test_2025", "unspecified") if value in available_splits]
+    splits = [value for value in ("forecast_2026", "test_2025", "validation_2025", "unspecified") if value in available_splits]
     with controls[0]:
         split = st.selectbox(
-            "Conjunto", splits or ["unspecified"], format_func=lambda value: SPLIT_LABELS[value],
+            "Conjunto", splits or ["unspecified"], format_func=lambda value: "Retrospectiva 2026" if settings.mode == "v1" and value == "forecast_2026" else SPLIT_LABELS[value],
             disabled=not splits, key=f"explorer_split_{settings.mode}",
         )
     subset = candidates.loc[candidates["dataset_split"] == split]
     available_horizons = [value for value in (24, 48) if value in set(subset["horizon_hours"])]
     with controls[1]:
         horizon = st.radio(
-            "Modelo", available_horizons or [24, 48], horizontal=True,
+            "Horizonte" if settings.mode == "v1" else "Modelo", available_horizons or [24, 48], horizontal=True,
             format_func=lambda value: f"{value} h", key="selected_horizon", disabled=not available_horizons,
         )
     settings = replace(settings, horizon_hours=horizon)
@@ -56,7 +65,6 @@ def render() -> None:
     first, last = forecast.predictions["timestamp"].iloc[[0, -1]]
     retrospective = last <= pd.Timestamp.now(tz="UTC")
     kind = "Previsão retrospectiva" if retrospective else "Previsão com alvos futuros"
-    st.caption(f"{kind} · t₀ {format_timestamp(forecast.issued_at)} · {first.tz_convert(settings.timezone).strftime('%d/%m %H:%M')} → {last.tz_convert(settings.timezone).strftime('%d/%m %H:%M')}")
     metric_cards([
         {"label": "Pico previsto", "value": f"{format_number(summary['peak_load'])} {forecast.unit}", "help": "Maior carga prevista da emissão. Em caso de empate, exibe-se o primeiro pico."},
         {"label": "Horário do pico", "value": peak.strftime("%H:%M · %d/%m"), "help": format_timestamp(peak)},
@@ -77,6 +85,7 @@ def render() -> None:
         st.warning(f"MAE parcial: {metrics['n_pairs']} de {horizon} pares disponíveis.")
     with st.expander("Detalhes metodológicos"):
         forecast_details(forecast, settings)
+        st.write(f"{kind} · {first.tz_convert(settings.timezone):%d/%m %H:%M} → {last.tz_convert(settings.timezone):%d/%m %H:%M}")
         st.write("Comparações em UTC; exibição em America/Sao_Paulo. A semana anterior usa o alvo menos 168 h, disponível até t₀. Lacunas não são preenchidas.")
         st.write(f"Amostra do MAE: {metrics['n_pairs']} de {horizon} pares. Sem observado correspondente, o erro fica N/D.")
         if temperature:
@@ -87,13 +96,18 @@ def render() -> None:
         if bundle.mode == "demo":
             st.write("Carga, temperatura, calendário e previsões são artificiais; não representam precisão de modelos treinados ou calendário oficial.")
         else:
-            st.write("A abrangência vem da fonte selecionada. O calendário do Rio fornece contexto acadêmico à série regional. Consulte os metadados do modelo para a separação de treino, validação e teste.")
+            st.write("O recorte municipal foi declarado na fonte; a declaração não substitui a comprovação da origem. A separação de treino/validação/teste deve ser documentada pelos responsáveis.")
     with st.expander("Valores horários e calendário"):
-        table = forecast.predictions.merge(calendar.drop(columns="date"), on="timestamp", validate="one_to_one")
+        hourly = frame.loc[frame["phase"].eq("previsão"), ["timestamp", "predicted_load", "observed_load", "seasonal_load"]]
+        table = hourly.merge(calendar.drop(columns="date"), on="timestamp", validate="one_to_one")
         table["timestamp"] = table["timestamp"].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M %z")
         table["day_type"] = table["day_type"].map(DAY_LABELS).fillna("Não informado")
         table["holiday_scope"] = table["holiday_scope"].map(SCOPE_LABELS).fillna("Não informado")
-        data_table(table.rename(columns={"timestamp": "Hora prevista", "predicted_load": f"Previsto ({forecast.unit})", "day_type": "Calendário", "holiday_scope": "Âmbito", "event_name": "Evento"}))
+        data_table(table.rename(columns={
+            "timestamp": "Hora prevista", "predicted_load": f"Previsto ({forecast.unit})",
+            "observed_load": f"Observado ({forecast.unit})", "seasonal_load": f"Semanal ({forecast.unit})",
+            "day_type": "Calendário", "holiday_scope": "Âmbito", "event_name": "Evento",
+        }))
         st.download_button(
             "Exportar previsão", data=export_forecast_csv(forecast),
             file_name=f"{'sintetico' if bundle.mode == 'demo' else 'previsao'}_{horizon}h_{forecast.issued_at.strftime('%Y%m%dT%H%M%SZ')}.csv",
