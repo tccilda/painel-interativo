@@ -21,6 +21,15 @@ def render() -> None:
         _render_profiles()
 
 
+def _date_range(label, default_start, first, last, key):
+    previous = st.session_state.get(key, ())
+    if len(previous) == 2:
+        overlap = (max(previous[0], first), min(previous[1], last))
+        if overlap[0] <= overlap[1] and overlap != previous:
+            st.session_state[key] = overlap
+    return st.date_input(label, value=(default_start, last), min_value=first, max_value=last, format="DD/MM/YYYY", key=key)
+
+
 def _render_profiles(context=None) -> None:
     bundle, settings = context or page_header("Sazonalidade, Clima e Calendário")
     observations = region_history(bundle.observations, settings.region, unit=settings.unit)
@@ -35,14 +44,17 @@ def _render_profiles(context=None) -> None:
     dates = observations["timestamp"].dt.tz_convert(settings.timezone).dt.date
     controls = st.columns([1.3, 1])
     with controls[0]:
-        period = st.date_input("Período da análise", value=(dates.min(), dates.max()), min_value=dates.min(), max_value=dates.max(), format="DD/MM/YYYY", key=f"patterns_period_{settings.mode}_{settings.region}_{settings.unit}")
+        first, last = dates.min(), dates.max()
+        period = _date_range("Período da análise", first, first, last,
+                             f"patterns_period_{settings.mode}_{settings.region}_{settings.unit}")
     if len(period) != 2:
         st.info("Selecione o início e o fim do período.")
         return
     history = filter_history(observations, period[0], period[1], settings.timezone)
     years = sorted(history["timestamp"].dt.tz_convert(settings.timezone).dt.year.unique().tolist())
+    period_key = settings.mode if settings.mode == "v5" else f"{settings.mode}_{period[0]}_{period[1]}"
     with controls[1]:
-        selected_years = st.multiselect("Anos", years, default=years, key=f"patterns_years_{settings.mode}_{period[0]}_{period[1]}")
+        selected_years = st.multiselect("Anos", years, default=years, key=f"patterns_years_{period_key}")
     history = history.loc[history["timestamp"].dt.tz_convert(settings.timezone).dt.year.isin(selected_years)]
     if history.empty:
         st.info("Nenhuma observação no período selecionado.")
@@ -62,12 +74,10 @@ def _render_profiles(context=None) -> None:
     climate_dates = history["timestamp"].dt.tz_convert(settings.timezone).dt.date
     first, last = climate_dates.min(), climate_dates.max()
     climate_controls = st.columns([1.3, 1])
+    history_key = period_key if settings.mode == "v5" else f"{period_key}_{selected_years}"
     with climate_controls[0]:
-        climate_period = st.date_input(
-            "Intervalo climático", value=(max(first, last - timedelta(days=29)), last),
-            min_value=first, max_value=last, format="DD/MM/YYYY",
-            key=f"climate_period_{settings.mode}_{period[0]}_{period[1]}_{selected_years}",
-        )
+        climate_period = _date_range("Intervalo climático", max(first, last - timedelta(days=29)),
+                                     first, last, f"climate_period_{history_key}")
     with climate_controls[1]:
         frequency = st.radio(
             "Resolução temporal", ["daily", "weekly", "hourly"], horizontal=True,
@@ -101,7 +111,7 @@ def _render_profiles(context=None) -> None:
         selected = st.multiselect(
             "Categorias de calendário", categories, default=categories,
             format_func=lambda pair: DAY_LABELS[pair[0]] if pair[1] == "nenhum" else f"{DAY_LABELS[pair[0]]} · {scope_label(pair[1])}",
-            key=f"calendar_categories_{settings.mode}_{period[0]}_{period[1]}_{selected_years}",
+            key=f"calendar_categories_{history_key}",
         )
         profile = profile.loc[pd.MultiIndex.from_frame(profile[["day_type", "holiday_scope"]]).isin(selected)]
         if profile.empty:

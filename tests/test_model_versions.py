@@ -1,6 +1,7 @@
 """Integração com o catálogo publicado e partições mínimas descartáveis."""
 
-from datetime import timedelta
+from dataclasses import replace
+from datetime import date, timedelta
 import hashlib
 from io import BytesIO
 import json
@@ -20,7 +21,7 @@ from services.pattern_service import calendar_profile
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def prepare_index(tmp_path):
+def prepare_index(tmp_path, *, extra_emissions=False):
     manifest = json.loads((versions.root() / versions.V5 / "MANIFESTO_v5.json").read_text(encoding="utf-8"))
     issue = pd.Timestamp("2025-07-01T03:00:00Z")
     entries = []
@@ -28,19 +29,33 @@ def prepare_index(tmp_path):
     for horizon in (24, 48):
         name = f"previsoes_{horizon}h_v5.csv"
         source[name] = manifest["arquivos"][name]["sha256"]
-        path = tmp_path / f"{horizon}__hipotese_UTC__teste_2025__2025-07.parquet"
-        pd.DataFrame({
-            "modelo": "ols_estabilizado", "origem_t": issue.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "passo_h": range(1, horizon + 1), "eh_selecionado": 1,
-            "instante_alvo": pd.date_range(issue + timedelta(hours=1), periods=horizon, freq="h").strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "y_real": 40_000.0, "y_pred": 40_010.0, "y_baseline_semanal": 39_800.0,
-            "y_baseline_persistencia": 39_900.0, "fim_de_semana": 0, "eh_feriado": 0,
-            "eh_ponto_facultativo": 0, "evento_versao_ids": "[]",
-        }).to_parquet(path, index=False)
-        entries.append(dict(file=path.name, sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-                            bytes=path.stat().st_size, horizon=horizon, scenario="hipotese_UTC",
-                            stage="teste_2025", month="2025-07", rows=horizon))
+        partitions = {"2025-07": [(issue, "ols_estabilizado", 40_010.0)]}
+        if extra_emissions:
+            partitions["2025-07"].extend([
+                (pd.Timestamp("2025-07-02T03:00:00Z"), "ols_estabilizado", 41_000.0),
+                (pd.Timestamp("2025-07-02T03:00:30Z"), "ols_estabilizado", 41_030.0),
+                (pd.Timestamp("2025-07-01T03:00:00Z"), "piloto_so_carga", 39_500.0),
+            ])
+            partitions["2025-08"] = [(pd.Timestamp("2025-08-01T03:00:00Z"), "ols_estabilizado", 42_000.0)]
+        for month, emissions in partitions.items():
+            path = tmp_path / f"{horizon}__hipotese_UTC__teste_2025__{month}.parquet"
+            frames = [pd.DataFrame({
+                "modelo": model, "origem_t": stamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "passo_h": range(1, horizon + 1), "eh_selecionado": int(model == "ols_estabilizado"),
+                "instante_alvo": pd.date_range(stamp + timedelta(hours=1), periods=horizon, freq="h").strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "y_real": 40_000.0, "y_pred": prediction, "y_baseline_semanal": 39_800.0,
+                "y_baseline_persistencia": 39_900.0, "fim_de_semana": 0, "eh_feriado": 0,
+                "eh_ponto_facultativo": 0, "evento_versao_ids": "[]",
+            }) for stamp, model, prediction in emissions]
+            pd.concat(frames, ignore_index=True).to_parquet(path, index=False)
+            entries.append(dict(file=path.name, sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                                bytes=path.stat().st_size, horizon=horizon, scenario="hipotese_UTC",
+                                stage="teste_2025", month=month, rows=horizon * len(emissions)))
     (tmp_path / "index.json").write_text(json.dumps({"schema": 1, "source": source, "partitions": entries}))
+
+
+def with_label(widgets, label):
+    return next(widget for widget in widgets if widget.label == label)
 
 
 def test_v5_starts_with_exact_horizons_and_older_aggregate_only(monkeypatch, tmp_path):
@@ -133,15 +148,138 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception and len(page.dataframe[0].value) == 24
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
-    assert any("12 emissões reais" in item.value for item in method.markdown)
+    text = " ".join(item.value for item in method.markdown)
+    assert all(phrase in text for phrase in (
+        "12 exemplos reais", "métricas calculadas com os dados do recorte completo",
+        "duas hipóteses", "UTC e São Paulo", "aparecem no horário de São Paulo",
+        "informação de contexto", "A621 e A601", "até 1 h antes", "sem preencher lacunas",
+        "temp_rj_c", "leitura anterior", "atos já conhecidos no momento da emissão",
+    ))
     temperature = next(card for card in page.metric if card.label == "Temperatura em t₀")
     assert all(word in temperature.proto.help for word in ("contexto", "1 h", "ffill", "temp_rj_c", "causal"))
     assert any("temp_rj_c" in item.value for item in method.markdown)
-    assert not any("12 emissões reais" in item.value for item in page.caption)
-    assert page.selectbox(key="v5_month").label == "Mês da emissão (amostra V5)"
-    assert page.selectbox(key="v5_month").options == ["07/2025"]
-    assert page.selectbox(key="v5_month").value == "2025-07"
+    assert not any("12 exemplos reais" in item.value for item in page.caption)
+    month = with_label(page.selectbox, "Mês da emissão (amostra V5)")
+    assert month.options == ["07/2025"] and month.value == "2025-07"
+    issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
+    assert issue.options == ["00:00"] and issue.value == "2025-07-01T03:00:00Z"
+    details = with_label(page.expander, "Valores horários e calendário")
+    assert any("Estimador exibido" in item.value and "ols_estabilizado" in item.value
+               and "escolhido na avaliação" in item.value for item in details.markdown)
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+
+
+@pytest.mark.parametrize("horizon", [24, 48])
+@pytest.mark.parametrize("scenario", ["hipotese_UTC", "hipotese_Sao_Paulo"])
+def test_v5_preview_uses_the_current_stage_on_every_transition(monkeypatch, tmp_path, scenario, horizon):
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
+    page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
+    page.selectbox(key="v5_explorer_scenario").set_value(scenario)
+    page.radio(key="v5_explorer_horizon").set_value(horizon).run()
+    partitions = {entry["stage"]: entry for entry in versions.detail_index()
+                  if (entry["scenario"], entry["horizon"]) == (scenario, horizon)}
+    for stage, day in [
+        ("teste_2025", "2025-07-01"), ("validacao_1s2025", "2025-01-01"),
+        ("retrospectiva_2026", "2026-01-01"), ("teste_2025", "2025-07-01"),
+    ]:
+        page.selectbox(key="v5_explorer_stage").set_value(stage).run()
+        assert not page.exception and not page.warning
+        assert len(page.metric) == 4 and len(page.get("plotly_chart")) == 1
+        issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
+        assert issue.options == ["00:00"] and issue.value == f"{day}T03:00:00Z"
+        assert with_label(page.selectbox, "Data da emissão").value == date.fromisoformat(day)
+        values = page.dataframe[0].value
+        assert len(values) == horizon
+        assert values["Alvo local"].iloc[0].startswith(f"{date.fromisoformat(day):%d/%m/%Y} 01:00")
+        expected = pd.read_parquet(versions.partition_path(partitions[stage]), columns=["passo_h", "y_pred"])
+        assert values["Previsto (MWmed)"].tolist() == expected.sort_values("passo_h")["y_pred"].tolist()
+
+
+def test_v5_explorer_updates_month_date_and_model_in_the_same_session(monkeypatch, tmp_path):
+    prepare_index(tmp_path, extra_emissions=True)
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
+    page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
+
+    def assert_prediction(timestamp, prediction):
+        assert not page.exception and not page.warning
+        assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").value == timestamp
+        assert page.dataframe[0].value["Previsto (MWmed)"].eq(prediction).all()
+
+    assert_prediction("2025-08-01T03:00:00Z", 42_000.0)
+    with_label(page.selectbox, "Mês da emissão").set_value("2025-07").run()
+    issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
+    assert len(set(issue.options)) == 2
+    issue.set_value("2025-07-02T03:00:00Z").run()
+    assert_prediction("2025-07-02T03:00:00Z", 41_000.0)
+    with_label(page.selectbox, "Data da emissão").set_value(date(2025, 7, 1)).run()
+    assert_prediction("2025-07-01T03:00:00Z", 40_010.0)
+    assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").options == ["00:00"]
+    with_label(page.selectbox, "Estimador").set_value("piloto_so_carga").run()
+    assert_prediction("2025-07-01T03:00:00Z", 39_500.0)
+    assert any("piloto_so_carga" in item.value and "usado no piloto" in item.value
+               for item in with_label(page.expander, "Valores horários e calendário").markdown)
+
+
+@pytest.mark.parametrize("version", ["Todas", "v5"])
+@pytest.mark.parametrize("stage", ["teste_2025", "retrospectiva_2026"])
+def test_evolution_explains_when_24h_has_no_alternative_estimators(version, stage):
+    page = AppTest.from_string(
+        "from components.model_versions_views import render_evolution; render_evolution()", default_timeout=60,
+    ).run()
+    page.selectbox(key="evolution_version").set_value(version)
+    page.selectbox(key="evolution_stage").set_value(stage)
+    page.selectbox(key="evolution_role").set_value("Alternativa").run()
+    assert not page.exception and not page.get("plotly_chart")
+    assert any("Não há estimadores alternativos disponíveis neste recorte de 24 h" in item.value for item in page.info)
+    page.selectbox(key="evolution_stage").set_value("validacao_1s2025").run()
+    assert page.get("plotly_chart")
+    assert not any("Não há estimadores alternativos" in item.value for item in page.info)
+
+
+def test_seasonality_keeps_filters_when_switching_hypothesis(monkeypatch):
+    app = AppTest.from_string(
+        "from app_pages.sazonalidade import _render_profiles\n"
+        "from components.model_versions_views import render_seasonality\n"
+        "render_seasonality(_render_profiles)",
+        default_timeout=60,
+    ).run()
+    analysis_period = (date(2024, 6, 1), date(2025, 9, 30))
+    climate_period = (date(2025, 6, 1), date(2025, 6, 30))
+    with_label(app.date_input, "Período da análise").set_value(analysis_period)
+    with_label(app.multiselect, "Anos").set_value([2025]).run()
+    categories = [("dia_util", "nenhum"), ("ponto_facultativo", "federal_administracao+municipal")]
+    with_label(app.date_input, "Intervalo climático").set_value(climate_period)
+    with_label(app.radio, "Resolução temporal").set_value("hourly")
+    with_label(app.multiselect, "Categorias de calendário").set_value(categories).run()
+    for scenario in ("hipotese_Sao_Paulo", "hipotese_UTC"):
+        app.selectbox(key="v5_patterns_scenario").set_value(scenario).run()
+        assert not app.exception
+        assert with_label(app.date_input, "Período da análise").value == analysis_period
+        assert with_label(app.multiselect, "Anos").value == [2025]
+        assert with_label(app.date_input, "Intervalo climático").value == climate_period
+        assert with_label(app.radio, "Resolução temporal").value == "hourly"
+        assert with_label(app.multiselect, "Categorias de calendário").value == categories
+        history = with_label(app.expander, "Histórico horário").get("plotly_chart")[0]
+        assert "%Y" in json.loads(history.proto.spec)["layout"]["xaxis"]["tickformat"]
+
+    load_scenario = versions.load_scenario
+    first = date(2025, 6, 21)
+
+    def shorter_scenario(directory, scenario):
+        data = load_scenario(directory, scenario)
+        timestamps = data.observations["timestamp"].dt.tz_convert(versions.TZ)
+        return replace(data, observations=data.observations.loc[timestamps.dt.date.ge(first)])
+
+    monkeypatch.setattr(versions, "load_scenario", shorter_scenario)
+    app.selectbox(key="v5_patterns_scenario").set_value("hipotese_Sao_Paulo").run()
+    assert not app.exception
+    assert with_label(app.date_input, "Período da análise").value == (first, analysis_period[1])
+    assert with_label(app.multiselect, "Anos").value == [2025]
+    assert with_label(app.date_input, "Intervalo climático").value == (first, climate_period[1])
+    assert with_label(app.radio, "Resolução temporal").value == "hourly"
+    assert with_label(app.multiselect, "Categorias de calendário").value == categories[:1]
 
 
 def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp_path):
@@ -165,6 +303,13 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
                                   check_names=False)
     exports = [item.proto.label for item in app.get("download_button")]
     assert {"Exportar episódios", "Exportar métricas do recorte", "Exportar pares comuns"}.issubset(exports)
+    first_month = with_label(app.selectbox, "Mês da emissão (amostra V5)")
+    assert first_month.value == "2025-07"
+    app.selectbox(key="evolution_stage").set_value("validacao_1s2025").run()
+    next_month = with_label(app.selectbox, "Mês da emissão (amostra V5)")
+    assert not app.warning and next_month.value == "2025-01"
+    assert next_month.key != first_month.key
+    app.selectbox(key="evolution_stage").set_value("teste_2025")
     app.selectbox(key="evolution_version").set_value("v1").run()
     assert not app.exception and app.selectbox(key="evolution_scenario").value == "sem_cenario_bruto"
     assert app.dataframe[0].value["Versão"].tolist() == ["V1"]
@@ -284,6 +429,28 @@ def test_version_axis_keeps_near_equal_values_readable_and_exports_full_precisio
     assert values.tolist() == original["mae_mwmed"].tolist()
     assert 0 < values.max() - values.min() < 3e-12
     assert lower < values.min() <= values.max() < upper
+
+
+def test_v1_episode_month_follows_the_current_stage(monkeypatch, tmp_path):
+    monkeypatch.setattr(versions, "legacy_path", lambda: tmp_path / "painel.zip")
+    monkeypatch.setattr(views, "_legacy", lambda *args: (None, None))
+    monkeypatch.setattr(versions, "legacy_episode_rows", lambda *args: pd.DataFrame())
+    monkeypatch.setattr(versions, "legacy_episode_source", lambda bundle, stage, horizon: pd.DataFrame({
+        "model_name": ["ols_bruto"], "month_issued": ["2025-07" if stage == "teste_2025" else "2026-01"],
+    }))
+    page = AppTest.from_string(
+        "import streamlit as st; from components.model_versions_views import _episode_section; "
+        "stage = st.selectbox('Etapa', ['teste_2025', 'retrospectiva_2026']); "
+        "_episode_section('sem_cenario_bruto', stage, 24, '1–24 h', None)", default_timeout=60,
+    ).run()
+    page.toggle(key="v1_query_episodes").set_value(True).run()
+    assert not page.exception and not page.warning
+    first_month = with_label(page.selectbox, "Mês da emissão")
+    assert first_month.value == "2025-07"
+    with_label(page.selectbox, "Etapa").set_value("retrospectiva_2026").run()
+    next_month = with_label(page.selectbox, "Mês da emissão")
+    assert not page.exception and not page.warning
+    assert next_month.value == "2026-01" and next_month.key != first_month.key
 
 
 def test_compact_manifest_rejects_tampered_metrics(tmp_path):

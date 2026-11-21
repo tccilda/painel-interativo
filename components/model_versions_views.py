@@ -95,29 +95,36 @@ def _render_v5(*, legacy_available):
         st.write("V2–V4 têm apenas métricas agregadas, em Avaliação de Desempenho e Erros.")
         if not legacy_available:
             st.write("As previsões horárias da V1 estão disponíveis em instalações com o ZIP legado.")
-        st.write("A V5 reúne previsões retrospectivas sobre snapshots fechados.")
-        st.write(f"{TEMPERATURE_CONTEXT} {TEMPERATURE_AT_ISSUE}")
+        st.write("As previsões V5 foram produzidas em uma avaliação retrospectiva, com dados já fechados.")
         if preview:
-            st.write(f"Amostra V5: {len(index)} emissões reais do manifesto, uma por hipótese, etapa e horizonte. As métricas usam as amostras completas declaradas.")
-        st.write("As duas hipóteses têm o mesmo estatuto. O carimbo oficial e sua borda seguem indeterminados. Emissões e alvos são armazenados em UTC e exibidos em America/Sao_Paulo. Eventos versionados refletem a informação disponível na origem segundo a hipótese do pacote.")
+            st.write(f"A prévia V5 reúne {len(index)} exemplos reais, um por combinação de hipótese de horário, conjunto e horizonte. A aba Avaliação de Desempenho e Erros mostra métricas calculadas com os dados do recorte completo.")
+        st.write("O horário original ainda não foi confirmado. A análise considera duas hipóteses para interpretá-lo, UTC e São Paulo. Nesta tela, a emissão e as horas previstas aparecem no horário de São Paulo.")
+        st.write("A temperatura do cartão é uma informação de contexto. É a média das últimas medições disponíveis de A621 e A601, feitas até 1 h antes da emissão, sem preencher lacunas. Os modelos V5 usaram a série composta `temp_rj_c`: priorizaram A621, recorreram à A601 na mesma hora e, quando ambas faltaram, usaram uma leitura anterior nas duas lacunas identificadas.")
+        st.write("A classificação do calendário usa os atos já conhecidos no momento da emissão, conforme a hipótese de horário escolhida.")
     if not entries:
         st.info("Nenhuma emissão no recorte selecionado.")
         return
-    month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão", entries, "v5_month")
+    slice_key = f"{scenario}_{stage}_{horizon}"
+    month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão", entries, f"v5_month_{slice_key}")
     entry = entries[month]
     path = versions.partition_path(entry)
     catalog = versions.issues_for_models(path, entry["sha256"])
     models = sorted(catalog["modelo"].unique(), key=lambda name: (not catalog.loc[catalog["modelo"].eq(name), "eh_selecionado"].eq(1).any(), name))
-    model = choice("Estimador", models, f"v5_model_{scenario}_{stage}_{horizon}_{month}")
+    model = choice("Estimador", models, f"v5_model_{slice_key}_{month}")
+    model_key = f"{slice_key}_{month}_{model}"
     options = catalog.loc[catalog["modelo"].eq(model), "origem_t"]
     times = pd.to_datetime(options, utc=True).dt.tz_convert(versions.TZ)
     dates = sorted(times.dt.date.unique(), reverse=True)
     cols = st.columns(2)
     with cols[0]:
-        day = st.selectbox("Data da emissão", dates, format_func=lambda value: value.strftime("%d/%m/%Y"), key="v5_date")
+        day = st.selectbox("Data da emissão", dates, format_func=lambda value: value.strftime("%d/%m/%Y"),
+                           key=f"v5_date_{model_key}")
     with cols[1]:
-        issue = st.selectbox("Hora / execução", sorted(options.loc[times.dt.date.eq(day)], reverse=True),
-                             format_func=lambda value: pd.Timestamp(value).tz_convert(versions.TZ).strftime("%H:%M %z"), key="v5_issue")
+        day_times = times.loc[times.dt.date.eq(day)]
+        labels = day_times.dt.strftime("%H:%M")
+        labels = labels.where(~labels.duplicated(keep=False), day_times.dt.strftime("%H:%M:%S %z"))
+        issue = choice("Hora da emissão (horário de São Paulo)", sorted(options.loc[day_times.index], reverse=True),
+                       f"v5_issue_{model_key}_{day}", dict(zip(options.loc[day_times.index], labels)))
     data = versions.forecast_detail(path, entry["sha256"], horizon, model, issue)
     observed = versions.load_scenario(str(versions.root()), scenario)
     t0 = pd.Timestamp(issue)
@@ -152,10 +159,11 @@ def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours
     with st.expander("Valores horários e calendário"):
         counts = pd.Series([DAY_LABELS[x[0]] for x in labels]).value_counts(sort=False)
         st.write(" · ".join(f"{kind}: {count} h" for kind, count in counts.items()))
-        role = "Selecionado" if data["eh_selecionado"].iloc[0] else (
-            "Piloto" if data["modelo"].iloc[0] == "piloto_so_carga" else "Alternativa"
+        model = data["modelo"].iloc[0]
+        role = "escolhido na avaliação deste recorte" if data["eh_selecionado"].iloc[0] else (
+            "usado no piloto" if model == "piloto_so_carga" else "avaliado como alternativa"
         )
-        st.write(f"Grupo do estimador · {role}")
+        st.write(f"Estimador exibido · `{model}` ({role})")
         exported = data.assign(versao="v5", alvo_id=versions.TARGET, horizonte_h=horizon, cenario=scenario,
                                etapa=stage, unidade="MWmed", y_real=future["observed_load"])
         display = exported.assign(calendario=[DAY_LABELS[x[0]] for x in labels],
@@ -238,6 +246,11 @@ def render_evolution():
         fig.update_layout(height=300, margin={"t": 15}, separators=",.")
         fig.update_xaxes(categoryorder="array", categoryarray=[v.upper() for v in order])
         st.plotly_chart(fig, width="stretch", config={"displaylogo": False})
+    elif display["modelo"].isna().all() and not (version == "piloto" and stage == "retrospectiva_2026"):
+        if role == "Alternativa":
+            st.info(f"Não há estimadores alternativos disponíveis neste recorte de {horizon} h.")
+        else:
+            st.info("Não há estimadores deste grupo no recorte selecionado.")
     data_table(display[["versao", "modelo", "n_pares", "n_mape_validos", *versions.METRICS]].rename(columns={
         "versao": "Versão", "modelo": "Estimador", "n_pares": "Pares", "n_mape_validos": "Pares MAPE", **versions.METRICS
     }), decimals=4, integer_columns=("Pares", "Pares MAPE"))
@@ -397,7 +410,8 @@ def _episode_section(scenario, stage, horizon, block, model):
                     st.info("Nenhuma previsão individual V1 disponível neste recorte.")
                     return
                 model = subset["model_name"].iloc[0]
-                month = month_choice("Mês da emissão", subset["month_issued"].unique(), "v1_episode_month")
+                month = month_choice("Mês da emissão", subset["month_issued"].unique(),
+                                     f"v1_episode_month_{stage}_{horizon}_{block}_{model}")
                 rows = versions.legacy_episode_rows(bundle, subset, month, lo, hi)
                 preview = False
             else:
@@ -411,7 +425,7 @@ def _episode_section(scenario, stage, horizon, block, model):
                     st.markdown("#### Maiores erros horários da amostra exibida")
                     st.caption("A consulta usa as previsões horárias da prévia pública V5.")
                 month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão",
-                                     entries, "v5_episode_month")
+                                     entries, f"v5_episode_month_{scenario}_{stage}_{horizon}_{block}_{model}")
                 entry = entries[month]
                 path = versions.partition_path(entry)
                 if preview and not versions.issues_for_models(path, entry["sha256"])["modelo"].eq(model).any():
@@ -469,7 +483,7 @@ def render_seasonality(render_profiles):
     except (OSError, ValueError, KeyError) as error:
         st.warning(f"Série auditada indisponível: {error}")
         return
-    settings = SidebarSettings(scenario, 24, versions.REGION,
+    settings = SidebarSettings("v5", 24, versions.REGION,
                                station=None if station == "Média disponível" else station)
     bundle = DataBundle("v5", [], value.observations, [], weather=value.weather, calendar=value.calendar)
     with st.expander("Temperatura observada e série dos modelos V5"):

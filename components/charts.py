@@ -133,7 +133,7 @@ def history_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE, 
         return _empty_chart("Carga observada no período", timezone)
     figure = _base_chart("Carga observada no período", x_title=f"Data/hora local · {timezone}", y_title=f"Carga ({unit})")
     _add_line(figure, observations, "observed_load", "Carga observada", NAVY, timezone, unit=unit)
-    figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
+    figure.update_xaxes(tickformat="%d/%m/%Y<br>%H:%M")
     figure.update_layout(showlegend=False, margin={"b": 48})
     return figure
 
