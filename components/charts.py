@@ -326,10 +326,11 @@ def calendar_profile_chart(profile: pd.DataFrame, unit: str = "MWmed") -> go.Fig
     for index, ((day_type, scope), rows) in enumerate(profile.groupby(["day_type", "holiday_scope"], sort=True)):
         rows = rows.set_index("hour").reindex(range(24))
         label = names.get(day_type, day_type)
+        scope_text = " + ".join(scopes.get(code, code) for code in scope.split("+"))
         if day_type == "feriado":
-            label += f" {scopes.get(scope, scope)}"
+            label += f" · {scope_text}"
         elif day_type == "ponto_facultativo":
-            label = "Facultativo · " + ("N/D" if scope == "nao_informado" else scopes.get(scope, scope))
+            label = "Facultativo · " + ("N/D" if scope == "nao_informado" else scope_text)
         valid = rows["mean"].notna().to_numpy()
         marker_sizes = [
             3 if value and not (hour > 0 and valid[hour - 1]) and not (hour < 23 and valid[hour + 1]) else 0

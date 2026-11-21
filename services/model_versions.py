@@ -27,7 +27,7 @@ VERSIONS = ("v1", "v2", "v3", "v4", "v5")
 SCENARIOS = {
     "hipotese_UTC": "Hipótese UTC",
     "hipotese_Sao_Paulo": "Hipótese São Paulo",
-    "sem_cenario_bruto": "Carimbo original V1",
+    "sem_cenario_bruto": "Carimbo original · fuso não documentado (Piloto/V1)",
 }
 STAGES = {
     "teste_2025": "Teste 2025",
@@ -148,9 +148,11 @@ def classify(row, names):
     matched = [names[i] for i in ids]
     scopes = {"federal_administracao": "federal_administracao", "nacional": "nacional",
               "estadual_rj": "estadual", "municipal_rio": "municipal"}
-    event = next((e for e in matched if (holiday and e['eh_feriado']) or (not holiday and optional and e['eh_ponto_facultativo'])), None)
-    scope = scopes.get(event['esfera'], "nao_informado") if event else ("nao_informado" if holiday or optional else "nenhum")
-    return kind, scope, "; ".join(e['nome_evento'] for e in matched)
+    primary = [event for event in matched if (holiday and event["eh_feriado"])
+               or (not holiday and optional and event["eh_ponto_facultativo"])]
+    scope = "+".join(dict.fromkeys(scopes.get(event["esfera"], "nao_informado") for event in primary + matched))
+    scope = (scope or "nao_informado") if holiday or optional else "nenhum"
+    return kind, scope, "; ".join(dict.fromkeys(event["nome_evento"] for event in matched))
 
 
 @st.cache_data(show_spinner=False)

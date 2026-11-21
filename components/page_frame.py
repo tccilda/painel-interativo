@@ -26,6 +26,10 @@ SCOPE_LABELS = {
 }
 
 
+def scope_label(scope: str) -> str:
+    return " + ".join(SCOPE_LABELS.get(code, "Não informado") for code in scope.split("+"))
+
+
 def get_context() -> tuple[DataBundle, SidebarSettings]:
     # Também protege páginas chamadas diretamente, fora do ponto de entrada.
     bundle = municipal_bundle(st.session_state["data_bundle"])

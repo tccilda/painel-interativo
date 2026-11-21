@@ -10,11 +10,22 @@ import streamlit as st
 
 from components.charts import WEEKDAYS, explorer_chart
 from components.metrics_cards import format_number, metric_cards
-from components.page_frame import DAY_LABELS, SCOPE_LABELS
+from components.page_frame import DAY_LABELS, scope_label
 from components.tables import csv_bytes, data_table
 from services import model_versions as versions
 from services.analysis_service import largest_errors, temperature_at_issue
 from services.forecast_catalog import forecast_catalog
+
+
+TEMPERATURE_CONTEXT = (
+    "A média aritmética das medições disponíveis de A621 e A601 é informação de contexto, "
+    "sem preenchimento de lacunas (ffill). Os modelos V5 usaram a série composta `temp_rj_c`, "
+    "com A621 prioritária, A601 como alternativa na mesma hora e preenchimento causal com a leitura anterior "
+    "nas duas lacunas simultâneas da série auditada."
+)
+TEMPERATURE_AT_ISSUE = (
+    "O cartão usa a última medição disponível de cada estação até t₀, com até 1 h de defasagem."
+)
 
 
 def choice(label, options, key, labels=None):
@@ -85,6 +96,7 @@ def _render_v5(*, legacy_available):
         if not legacy_available:
             st.write("As previsões horárias da V1 estão disponíveis em instalações com o ZIP legado.")
         st.write("A V5 reúne previsões retrospectivas sobre snapshots fechados.")
+        st.write(f"{TEMPERATURE_CONTEXT} {TEMPERATURE_AT_ISSUE}")
         if preview:
             st.write(f"Amostra V5: {len(index)} emissões reais do manifesto, uma por hipótese, etapa e horizonte. As métricas usam as amostras completas declaradas.")
         st.write("As duas hipóteses têm o mesmo estatuto. O carimbo oficial e sua borda seguem indeterminados. Emissões e alvos são armazenados em UTC e exibidos em America/Sao_Paulo. Eventos versionados refletem a informação disponível na origem segundo a hipótese do pacote.")
@@ -128,7 +140,8 @@ def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours
     metric_cards([
         {"label": "Pico previsto", "value": f"{format_number(peak.predicted_load)} MWmed"},
         {"label": "Horário do pico", "value": peak.timestamp.tz_convert(versions.TZ).strftime("%H:%M · %d/%m")},
-        {"label": "Temperatura em t₀", "value": f"{format_number(temperature['temperature_c'])} °C" if temperature else "N/D"},
+        {"label": "Temperatura em t₀", "value": f"{format_number(temperature['temperature_c'])} °C" if temperature else "N/D",
+         "help": f"{TEMPERATURE_CONTEXT} {TEMPERATURE_AT_ISSUE}"},
         {"label": "MAE da emissão", "value": f"{format_number(mae, 2)} MWmed" if pd.notna(mae) else "N/D",
          "help": f"{future.observed_load.count()} de {horizon} horas com carga observada."},
     ])
@@ -146,7 +159,7 @@ def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours
         exported = data.assign(versao="v5", alvo_id=versions.TARGET, horizonte_h=horizon, cenario=scenario,
                                etapa=stage, unidade="MWmed", y_real=future["observed_load"])
         display = exported.assign(calendario=[DAY_LABELS[x[0]] for x in labels],
-                                  ambito=[SCOPE_LABELS[x[1]] for x in labels],
+                                  ambito=[scope_label(x[1]) for x in labels],
                                   eventos=[x[2] for x in labels])
         display["instante_local"] = future["timestamp"].dt.tz_convert(versions.TZ).dt.strftime("%d/%m/%Y %H:%M %z")
         headings = {"passo_h": "Passo", "instante_local": "Alvo local", "y_real": "Observado (MWmed)",
@@ -185,12 +198,16 @@ def render_evolution():
         stage = choice("Etapa", list(versions.STAGES), "evolution_stage", versions.STAGES)
     with cols[4]:
         block = choice("Bloco", ["1–24 h"] if horizon == 24 else ["1–48 h", "1–24 h", "25–48 h"], "evolution_block")
-    roles = ["Selecionado", "Alternativa", "Piloto", "Referência"]
     left, right = st.columns(2)
     with left:
-        role = choice("Grupo de estimadores", roles, "evolution_role")
+        if version == "piloto":
+            role = choice("Grupo de estimadores", ["Piloto", "Referência"], "evolution_pilot_role")
+        else:
+            role = choice("Grupo de estimadores", ["Selecionado", "Alternativa", "Piloto", "Referência"], "evolution_role")
     with right:
         metric = choice("Indicador dos gráficos", list(versions.METRICS), "evolution_metric", versions.METRICS)
+    if version == "piloto" and stage == "retrospectiva_2026":
+        st.info("Retrospectiva 2026 está fora do desenho do Piloto histórico.")
     population = _filter(tables["globais"], horizon, stage, scenario)
     population = population.loc[population["bloco_horas"].eq(block) & population["papel"].eq(role)]
     model = None
@@ -208,11 +225,16 @@ def render_evolution():
         order.insert(0, "piloto")
     display = population.set_index("versao").reindex(order).reset_index()
     display["versao"] = display["versao"].str.upper()
-    if display[metric].notna().any():
+    values = display[metric].dropna()
+    if not values.empty:
         fig = px.scatter(display, x="versao", y=metric, hover_data=["modelo", "n_pares"],
                          labels={"versao": "Versão", "modelo": "Estimador", "n_pares": "Pares",
                                  metric: versions.METRICS[metric]})
         fig.update_traces(marker_size=10)
+        fig.update_yaxes(tickformat=",.2f", hoverformat=",.4f")
+        if values.max() - values.min() < 0.1:
+            lower = max(0.0, (values.max() + values.min()) / 2 - 0.05)
+            fig.update_yaxes(range=[lower, lower + 0.1])
         fig.update_layout(height=300, margin={"t": 15}, separators=",.")
         fig.update_xaxes(categoryorder="array", categoryarray=[v.upper() for v in order])
         st.plotly_chart(fig, width="stretch", config={"displaylogo": False})
@@ -256,18 +278,35 @@ def render_evolution():
         st.write("N/D representa ausência no recorte. MAE e RMSE em MWmed; MAPE em %. Os blocos 1–24 e 25–48 pertencem ao modelo de 48 h. Validação, teste e retrospectiva de 2026 são exibidos separadamente.")
         st.write("Validação: primeiro semestre de 2025. Teste: segundo semestre de 2025. Retrospectiva: período de 2026 coberto pelos snapshots.")
         st.write("V1: carimbo bruto. V2: hipóteses de horário. V3: ajuste OLS estabilizado. V4: reexecução retrospectiva. V5: calendário versionado e comparação com pares comuns.")
-        availability = tables["disponibilidade"]
-        subset = _filter(availability, horizon, stage, scenario)
-        if not subset.empty:
-            data_table(subset[["versao", "modelo", "tabela", "campo", "status", "motivo"]], height=320, labels={
-                "versao": "Versão", "modelo": "Estimador", "tabela": "Tabela", "campo": "Campo",
-                "status": "Situação", "motivo": "Motivo",
-            })
+        if version in ("Todas", "v5"):
+            st.caption("Esta tabela consulta o catálogo histórico de disponibilidade (Piloto e V1–V4). A V5 tem métricas e cobertura em seções próprias nesta aba.")
+        subset = _filter(tables["disponibilidade"], horizon, stage, scenario)
+        lo, hi = _block_steps(block)
+        subset = subset.loc[subset["versao"].isin(order)
+                            & (subset["bloco_horas"].eq(block) | subset["bloco_horas"].isna())
+                            & (subset["passo_h"].between(lo, hi) | subset["passo_h"].isna())]
+        if model is not None:
+            subset = subset.loc[subset["modelo"].eq(model) | subset["modelo"].isna()]
+        if subset.empty:
+            st.caption("Nenhum registro no catálogo histórico para este recorte.")
+        else:
+            columns = {
+                "versao": "Versão", "modelo": "Estimador", "tabela": "Tabela", "bloco_horas": "Bloco",
+                "passo_h": "Passo", "hora_alvo_local": "Hora local", "mes_alvo_local": "Mês",
+                "campo": "Campo", "status": "Situação", "casas_decimais": "Precisão (casas decimais)",
+                "dependencia": "Dependência", "motivo": "Motivo",
+            }
+            data_table(subset[list(columns)], height=320, integer_columns=("passo_h", "hora_alvo_local", "casas_decimais"),
+                       labels=columns)
+
+
+def _block_steps(block):
+    return (25, 48) if block == "25–48 h" else (1, 48 if block == "1–48 h" else 24)
 
 
 def _step_chart(frame, horizon, stage, scenario, block, role, model, metric):
     st.markdown("#### Erro por passo")
-    lo, hi = (25, 48) if block == "25–48 h" else (1, 48) if block == "1–48 h" else (1, 24)
+    lo, hi = _block_steps(block)
     steps = _filter(frame, horizon, stage, scenario)
     steps = steps.loc[steps["papel"].eq(role) & steps["passo_h"].between(lo, hi)]
     if model is not None:
@@ -341,9 +380,11 @@ def _episode_section(scenario, stage, horizon, block, model):
     is_legacy = scenario == "sem_cenario_bruto"
     version = "v1" if is_legacy else "v5"
     with st.expander(f"Maiores erros por emissão · {version.upper()}"):
+        if not is_legacy:
+            st.caption(f"Nos episódios, a temperatura é observada no horário do alvo. {TEMPERATURE_CONTEXT}")
         if not st.toggle("Consultar episódios", key=f"{version}_query_episodes"):
             return
-        lo, hi = (25, 48) if block == "25–48 h" else (1, 48 if block == "1–48 h" else 24)
+        lo, hi = _block_steps(block)
         try:
             if is_legacy:
                 path = versions.legacy_path() if stage != "validacao_1s2025" else None
@@ -366,10 +407,17 @@ def _episode_section(scenario, stage, horizon, block, model):
                     st.info("Nenhuma emissão disponível neste recorte.")
                     return
                 preview = next(iter(entries.values()))["preview"]
+                if preview:
+                    st.markdown("#### Maiores erros horários da amostra exibida")
+                    st.caption("A consulta usa as previsões horárias da prévia pública V5.")
                 month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão",
                                      entries, "v5_episode_month")
                 entry = entries[month]
-                rows = versions.episode_rows(versions.partition_path(entry), entry["sha256"], model, lo, hi, scenario)
+                path = versions.partition_path(entry)
+                if preview and not versions.issues_for_models(path, entry["sha256"])["modelo"].eq(model).any():
+                    st.info(f"A prévia V5 não inclui previsões horárias para o estimador {model} neste recorte.")
+                    return
+                rows = versions.episode_rows(path, entry["sha256"], model, lo, hi, scenario)
         except (OSError, ValueError, KeyError, URLError) as error:
             st.warning(f"Episódios indisponíveis: {error}")
             return
@@ -392,7 +440,7 @@ def _episode_section(scenario, stage, horizon, block, model):
         if worst.empty:
             st.info("Nenhum episódio atende aos filtros.")
             return
-        display = worst.assign(day_type=worst["day_type"].map(DAY_LABELS), holiday_scope=worst["holiday_scope"].map(SCOPE_LABELS))
+        display = worst.assign(day_type=worst["day_type"].map(DAY_LABELS), holiday_scope=worst["holiday_scope"].map(scope_label, na_action="ignore"))
         for column in ("issued_at", "timestamp"):
             display[column] = display[column].dt.tz_convert(versions.TZ).dt.strftime("%d/%m/%Y %H:%M %z")
         headings = {"issued_at": "Emissão", "timestamp": "Alvo", "forecast_step": "Passo",
@@ -400,7 +448,9 @@ def _episode_section(scenario, stage, horizon, block, model):
                     "absolute_error": "Erro absoluto (MWmed)", "day_type": "Calendário",
                     "holiday_scope": "Âmbito", "temperature_c": "Temp. (°C)"}
         data_table(display[list(headings)].rename(columns=headings), height=390)
-        export = worst.assign(alvo_id=versions.TARGET, unidade="MWmed", versao=version, modelo=model,
+        # O CSV de episódios conserva o código de âmbito primário do calendário.
+        export = worst.assign(holiday_scope=worst["holiday_scope"].str.split("+").str[0],
+                              alvo_id=versions.TARGET, unidade="MWmed", versao=version, modelo=model,
                               cenario=scenario, etapa=stage, horizonte_h=horizon, bloco_horas=block,
                               mes_emissao=month, amostra=preview)
         st.download_button("Exportar episódios", csv_bytes(export), file_name=f"maiores_erros_{version}.csv", mime="text/csv")
@@ -422,6 +472,8 @@ def render_seasonality(render_profiles):
     settings = SidebarSettings(scenario, 24, versions.REGION,
                                station=None if station == "Média disponível" else station)
     bundle = DataBundle("v5", [], value.observations, [], weather=value.weather, calendar=value.calendar)
+    with st.expander("Temperatura observada e série dos modelos V5"):
+        st.write(f"Em Carga × Temperatura, as medições correspondem ao horário da carga. {TEMPERATURE_CONTEXT}")
     render_profiles((bundle, settings))
     with st.expander("Inventário versionado e pendências"):
         st.write("A série horária auditada V5 usa os IDs ativos na própria hora. O alcance de cada ato consta no inventário. As pendências abaixo não entram nas classificações.")

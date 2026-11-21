@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from components.charts import annual_chart, calendar_profile_chart, daily_pattern_chart, history_chart, load_temperature_chart, monthly_chart, temperature_scatter, weekly_pattern_chart
-from components.page_frame import DAY_LABELS, SCOPE_LABELS, page_header
+from components.page_frame import DAY_LABELS, page_header, scope_label
 from components.tables import data_table
 from services.history_service import filter_history, region_history
 from services.pattern_service import aggregate_load_temperature, annual_profile, calendar_profile, join_weather, monthly_profile
@@ -100,7 +100,7 @@ def _render_profiles(context=None) -> None:
         categories = sorted(set(zip(profile["day_type"], profile["holiday_scope"])))
         selected = st.multiselect(
             "Categorias de calendário", categories, default=categories,
-            format_func=lambda pair: DAY_LABELS[pair[0]] if pair[1] == "nenhum" else f"{DAY_LABELS[pair[0]]} · {SCOPE_LABELS[pair[1]]}",
+            format_func=lambda pair: DAY_LABELS[pair[0]] if pair[1] == "nenhum" else f"{DAY_LABELS[pair[0]]} · {scope_label(pair[1])}",
             key=f"calendar_categories_{settings.mode}_{period[0]}_{period[1]}_{selected_years}",
         )
         profile = profile.loc[pd.MultiIndex.from_frame(profile[["day_type", "holiday_scope"]]).isin(selected)]
@@ -111,7 +111,7 @@ def _render_profiles(context=None) -> None:
         with st.expander("Amostra do calendário"):
             display = profile.copy()
             display["day_type"] = display["day_type"].map(DAY_LABELS).fillna("Não informado")
-            display["holiday_scope"] = display["holiday_scope"].map(SCOPE_LABELS).fillna("Não informado")
+            display["holiday_scope"] = display["holiday_scope"].map(scope_label)
             data_table(display.rename(columns={"hour": "Hora", "day_type": "Calendário", "holiday_scope": "Âmbito", "mean": f"Média ({settings.unit})", "count": "Observações"}))
     with st.expander("Detalhes metodológicos"):
         st.write("Perfis são médias das cargas horárias disponíveis, sem extrapolar períodos incompletos. Contagens estão no hover. As análises usam somente 2024–2026 e observações já ocorridas.")
@@ -120,7 +120,7 @@ def _render_profiles(context=None) -> None:
         st.write(f"Estação: {settings.station or 'média das estações disponíveis em cada instante'}. O número de estações pode variar.")
         st.write("Sazonalidade e calendário usam o período da análise; clima usa seu intervalo próprio. Na resolução horária, a série temporal é limitada a 168 h para manter a leitura.")
         if bundle.mode == "v5":
-            st.write("A classificação horária vem dos IDs de evento conhecidos naquele instante.")
+            st.write("A classificação horária vem dos IDs de evento conhecidos naquele instante. Quando atos coexistem, o perfil reúne os âmbitos na mesma categoria e conta a hora uma vez.")
         st.write("Prioridade do calendário: feriado > ponto facultativo > fim de semana > dia útil. O ponto facultativo aplica-se ao âmbito administrativo indicado, sem implicar paralisação de toda a economia. Datas sem classificação permanecem não informadas.")
         if bundle.mode == "v5":
             st.write("A621 fica na Vila Militar (Rio de Janeiro) e A601 em Seropédica. Os dados locais contextualizam uma série de carga regional.")
