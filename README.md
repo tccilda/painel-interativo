@@ -92,11 +92,11 @@ Carregamentos padrão e catálogo usam `st.cache_data` com assinatura dos arquiv
 
 ## As três abas
 
-1. **Explorador de Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
+1. **Explorador de Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. Compare MAE e MAPE da emissão com as referências nos mesmos alvos válidos e consulte o resumo do recorte completo. A prévia pública traz 12 emissões reais, uma por combinação de hipótese, conjunto e horizonte. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
 2. **Avaliação de Desempenho e Erros.** Consulte as métricas fornecidas V1–V5 por versão, hipótese, etapa, horizonte e bloco. Veja os denominadores de MAE/RMSE e MAPE, a curva por passo, os dois horizontes com referências e o recorte pareado V4 × V5. Os episódios V1/V5 usam um mês de emissão de cada vez, com filtros no alvo por dia da semana, calendário e temperatura.
-3. **Sazonalidade, Clima e Calendário.** Compare perfis horários e semanais, médias mensais e anuais, dispersão e séries de carga e temperatura. Filtre as categorias de calendário por tipo e âmbito. O painel exibe o número de horas efetivamente observadas nos períodos disponíveis de 2024 a 2026.
+3. **Sazonalidade, Clima e Calendário.** Compare perfis horários e semanais, médias mensais e anuais, dispersão e séries de carga e temperatura. Filtre as categorias de calendário por tipo e âmbito. As contagens por categoria usam horas únicas, agrupam âmbitos simultâneos e destacam grupos com até 120 h de observação.
 
-A navegação fica no topo. O seletor de fonte só aparece quando a instalação oferece opções adicionais. Explicações ficam nas ajudas dos controles e em **Detalhes metodológicos**. As exportações preservam a precisão e os identificadores da origem.
+A navegação fica no topo. O seletor de fonte só aparece quando a instalação oferece opções adicionais. Explicações ficam nas ajudas dos controles e em **Detalhes metodológicos**. As tabelas exibem números em formato brasileiro e mostram N/D em células vazias. A ordenação pela grade usa o texto exibido. As exportações preservam a precisão e os identificadores da origem.
 
 ## Arquitetura
 

@@ -131,14 +131,14 @@ def test_provided_performance_keeps_summary_only_validation_separate_from_test_c
     assert page.get("plotly_chart")
     worst = [table.value for table in page.dataframe if "Erro absoluto (MWmed)" in table.value.columns]
     assert len(worst) == 1 and 0 < len(worst[0]) <= 30
-    assert worst[0]["Real (MWmed)"].notna().all()
+    assert worst[0]["Real (MWmed)"].ne("N/D").all()
 
     page.selectbox(key="performance_split_provided").set_value("validation_2025").run(timeout=60)
     assert not page.exception
     assert not page.error
     validation = page.dataframe[0].value
     assert validation["Origem"].eq("Resumo").all()
-    assert validation["MAE (MWmed)"].eq(10.).all()
+    assert validation["MAE (MWmed)"].eq("10,00").all()
     assert any("pareamento ponto a ponto não foi verificado" in item.value for item in page.warning)
     assert not page.get("plotly_chart")
     assert any("Sem previsões individuais" in item.value for item in page.info)
@@ -150,7 +150,7 @@ def test_provided_performance_keeps_summary_only_validation_separate_from_test_c
     assert page.get("plotly_chart")
     worst = [table.value for table in page.dataframe if "Erro absoluto (MWmed)" in table.value.columns]
     assert len(worst) == 1 and 0 < len(worst[0]) <= 30
-    assert worst[0]["Real (MWmed)"].notna().all()
+    assert worst[0]["Real (MWmed)"].ne("N/D").all()
     assert page.get("download_button")
 
 

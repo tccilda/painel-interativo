@@ -5,7 +5,7 @@ from dataclasses import replace
 import pandas as pd
 import streamlit as st
 
-from components.charts import explorer_chart
+from components.charts import PLOTLY_CONFIG, explorer_chart
 from components.metrics_cards import format_number, metric_cards
 from components.page_frame import DAY_LABELS, SCOPE_LABELS, SPLIT_LABELS, forecast_details, forecast_picker, format_timestamp, get_catalog, page_header
 from components.tables import data_table
@@ -80,13 +80,13 @@ def _render_legacy(context=None, catalog=None) -> None:
     frame = explorer_frame(forecast, bundle.observations, history_hours=history_hours)
     figure = explorer_chart(frame, forecast.issued_at, unit=forecast.unit, timezone=settings.timezone)
     figure.update_layout(title_text=None, margin={"t": 20})
-    st.plotly_chart(figure, width="stretch", config={"displaylogo": False})
+    st.plotly_chart(figure, width="stretch", config=PLOTLY_CONFIG)
     if 0 < metrics["n_pairs"] < horizon:
         st.warning(f"MAE parcial: {metrics['n_pairs']} de {horizon} pares disponíveis.")
     with st.expander("Detalhes metodológicos"):
         forecast_details(forecast, settings)
         st.write(f"{kind} · {first.tz_convert(settings.timezone):%d/%m %H:%M} → {last.tz_convert(settings.timezone):%d/%m %H:%M}")
-        st.write("Comparações em UTC; exibição em America/Sao_Paulo. A semana anterior usa o alvo menos 168 h, disponível até t₀. Lacunas não são preenchidas.")
+        st.write("Comparações em UTC; exibição no horário de São Paulo. A semana anterior usa o alvo menos 168 h, disponível até t₀. Lacunas não são preenchidas.")
         st.write(f"Amostra do MAE: {metrics['n_pairs']} de {horizon} pares. Sem observado correspondente, o erro fica N/D.")
         if temperature:
             st.write(f"Temperatura: {temperature['station_count']} estação(ões), de {format_timestamp(temperature['oldest_timestamp'])} a {format_timestamp(temperature['timestamp'])}. Seleção: {settings.station or 'média disponível'}.")
@@ -100,7 +100,8 @@ def _render_legacy(context=None, catalog=None) -> None:
     with st.expander("Valores horários e calendário"):
         hourly = frame.loc[frame["phase"].eq("previsão"), ["timestamp", "predicted_load", "observed_load", "seasonal_load"]]
         table = hourly.merge(calendar.drop(columns="date"), on="timestamp", validate="one_to_one")
-        table["timestamp"] = table["timestamp"].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M %z")
+        st.caption("Horas dos alvos no horário de São Paulo.")
+        table["timestamp"] = table["timestamp"].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M")
         table["day_type"] = table["day_type"].map(DAY_LABELS).fillna("Não informado")
         table["holiday_scope"] = table["holiday_scope"].map(SCOPE_LABELS).fillna("Não informado")
         data_table(table.rename(columns={

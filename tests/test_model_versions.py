@@ -15,6 +15,8 @@ from streamlit.testing.v1 import AppTest
 
 from components import model_versions_views as views
 from components.charts import calendar_profile_chart
+from components.metrics_cards import format_number
+from components.page_frame import model_label
 from services import model_versions as versions
 from services.pattern_service import calendar_profile
 
@@ -58,15 +60,19 @@ def with_label(widgets, label):
     return next(widget for widget in widgets if widget.label == label)
 
 
+def hourly_values(page):
+    return next(table.value for table in page.dataframe if "Alvo local" in table.value)
+
+
 def test_v5_starts_with_exact_horizons_and_older_aggregate_only(monkeypatch, tmp_path):
     prepare_index(tmp_path)
     monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception
     assert page.selectbox(key="catalog_explorer_version").value == "V5"
-    assert len(page.dataframe[0].value) == 24
+    assert len(hourly_values(page)) == 24
     page.radio(key="v5_explorer_horizon").set_value(48).run()
-    assert not page.exception and len(page.dataframe[0].value) == 48
+    assert not page.exception and len(hourly_values(page)) == 48
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
     assert all(widget.label != "Fonte" for widget in page.selectbox)
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
@@ -85,13 +91,13 @@ def test_metrics_use_real_row_keys_and_paired_source():
     ).run()
     assert not app.exception
     global_table, paired = (app.dataframe[j].value for j in (0, 1))
-    assert pd.isna(global_table.loc[global_table["Versão"].eq("V1"), "MAE (MWmed)"].iloc[0])
-    assert paired["n_pares_comuns"].tolist() == [104760]
+    assert global_table.loc[global_table["Versão"].eq("V1"), "MAE (MWmed)"].iloc[0] == "N/D"
+    assert paired["n_pares_comuns"].tolist() == ["104.760"]
     assert json.loads(app.dataframe[1].proto.columns)["n_pares_comuns"]["label"] == "Pares comuns"
-    assert paired["delta_mae_mwmed"].iloc[0] == data["pares"].loc[
+    assert paired["delta_mae_mwmed"].iloc[0] == format_number(data["pares"].loc[
         data["pares"]["cenario"].eq("hipotese_UTC") & data["pares"]["horizonte_h"].eq(24)
         & data["pares"]["etapa"].eq("teste_2025") & data["pares"]["modelo"].eq("ols_estabilizado"),
-        "delta_mae_mwmed"].iloc[0]
+        "delta_mae_mwmed"].iloc[0], 4)
 
 
 def test_audited_calendar_uses_versioned_ids_and_separate_pending_rows():
@@ -106,9 +112,18 @@ def test_audited_calendar_uses_versioned_ids_and_separate_pending_rows():
     assert events["data_local"].str.fullmatch(r"\d{2}/\d{2}/\d{4}").all()
     assert any("motivo_pendencia" in df.value for df in app.dataframe)
     note = next(box for box in app.expander if box.label == "Temperatura observada e série dos modelos V5")
-    assert all(word in note.markdown[0].value for word in ("contexto", "A621", "A601", "temp_rj_c", "causal"))
+    assert all(word in note.markdown[0].value for word in ("contexto", "A621", "A601", "série composta", "causal"))
     categories = next(widget for widget in app.multiselect if widget.label == "Categorias de calendário")
-    assert "Ponto facultativo · Administração pública federal + Municipal" in categories.options
+    assert "Ponto facultativo · Administração pública federal + Municipal — Rio de Janeiro" in categories.options
+    counts = next(table.value for table in app.dataframe if "Horas" in table.value)
+    assert sum(int(value.replace(".", "")) for value in counts["Horas"]) == 24837
+    assert counts.loc[counts["Horas"].eq("24"), "Tamanho da amostra"].tolist() == ["Apenas 1 dia equivalente"] * 2
+    assert counts.loc[counts["Horas"].eq("120"), "Tamanho da amostra"].tolist() == ["Grupo pequeno"]
+    assert "00:00" in next(table.value["Hora"].tolist() for table in app.dataframe if "Hora" in table.value)
+    assert events["conhecido_ate"].eq("N/D").any()
+    assert events["esfera"].isin(["Municipal — Rio de Janeiro", "Estadual — Rio de Janeiro"]).any()
+    pending = next(table.value for table in app.dataframe if "acao" in table.value)
+    assert pending["acao"].str.startswith("Manter excluído").all()
 
 
 @pytest.mark.parametrize("scenario", ["hipotese_UTC", "hipotese_Sao_Paulo"])
@@ -135,8 +150,8 @@ def test_coexisting_calendar_acts_keep_both_scopes_and_count_each_hour_once(scen
     assert profile["count"].sum() == len(data.observations) == 24837
     figure = json.loads(calendar_profile_chart(profile).to_json())
     names = {trace["name"] for trace in figure["data"]}
-    assert {"Facultativo · administração pública federal + municipal",
-            "Feriado · administração pública federal"}.issubset(names)
+    assert {"Ponto facultativo · Administração pública federal + Municipal — Rio de Janeiro · 96 h",
+            "Feriado · Administração pública federal · 624 h"}.issubset(names)
 
 
 def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
@@ -146,27 +161,58 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert len(index) == 12 and all(item["preview"] for item in index)
     assert sum(item["rows"] for item in index) == 432
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
-    assert not page.exception and len(page.dataframe[0].value) == 24
+    assert not page.exception and len(hourly_values(page)) == 24
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
     text = " ".join(item.value for item in method.markdown)
     assert all(phrase in text for phrase in (
-        "12 exemplos reais", "métricas calculadas com os dados do recorte completo",
         "duas hipóteses", "UTC e São Paulo", "aparecem no horário de São Paulo",
-        "informação de contexto", "A621 e A601", "até 1 h antes", "sem preencher lacunas",
-        "temp_rj_c", "leitura anterior", "atos já conhecidos no momento da emissão",
+        "informação de contexto", "A621 e A601", "até 1 h de defasagem", "sem preenchimento de lacunas",
+        "série composta", "leitura anterior", "atos já conhecidos no momento da emissão", "CON-01",
+        "XGBoost e LightGBM",
     ))
     temperature = next(card for card in page.metric if card.label == "Temperatura em t₀")
-    assert all(word in temperature.proto.help for word in ("contexto", "1 h", "ffill", "temp_rj_c", "causal"))
-    assert any("temp_rj_c" in item.value for item in method.markdown)
-    assert not any("12 exemplos reais" in item.value for item in page.caption)
+    assert all(word in temperature.proto.help for word in ("contexto", "1 h", "A621", "A601", "causal"))
+    coverage = next(item.value for item in page.caption if "12 exemplos reais" in item.value)
+    assert all(text in coverage for text in ("24 ou 48 alvos", "103.032 a 347.760 pares", "pacote legado V1",
+                                             "Mês da emissão", "Estimador", "Data da emissão", "Hora da emissão"))
+    issue_metrics, metrics = [table.value for table in page.dataframe[:2]]
+    assert issue_metrics["Estimador"].tolist() == metrics["Estimador"].tolist() == [
+        "OLS estabilizado", "Sazonal semanal", "Persistência",
+    ]
+    assert issue_metrics["MAE (MWmed)"].tolist() == ["949,00", "1.176,62", "8.403,03"]
+    assert issue_metrics["MAPE (%)"].tolist() == ["2,22", "2,80", "18,92"]
+    assert metrics["MAE (MWmed)"].tolist() == ["1.085,92", "2.023,52", "5.506,31"]
+    assert metrics["MAPE (%)"].tolist() == ["2,54", "4,72", "13,16"]
+    assert metrics["Pares"].tolist() == ["104.760"] * 3
     month = with_label(page.selectbox, "Mês da emissão (amostra V5)")
     assert month.options == ["07/2025"] and month.value == "2025-07"
     issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
     assert issue.options == ["00:00"] and issue.value == "2025-07-01T03:00:00Z"
     details = with_label(page.expander, "Valores horários e calendário")
-    assert any("Estimador exibido" in item.value and "ols_estabilizado" in item.value
+    assert any("Estimador exibido" in item.value and "OLS estabilizado" in item.value
                and "escolhido na avaliação" in item.value for item in details.markdown)
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+
+
+def test_issue_comparison_uses_common_targets_and_excludes_zero_only_from_mape(monkeypatch, tmp_path):
+    prepare_index(tmp_path)
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
+    load_detail = versions.forecast_detail
+
+    def detail_with_gaps(*args):
+        frame = load_detail(*args)
+        frame.loc[frame["passo_h"].eq(1), "y_baseline_semanal"] = float("nan")
+        frame.loc[frame["passo_h"].eq(2), "y_real"] = 0.0
+        return frame
+
+    monkeypatch.setattr(versions, "forecast_detail", detail_with_gaps)
+    page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
+    assert not page.exception and not page.warning
+    assert any("23 de 24 alvos em comum para o MAE · 22 para o MAPE" in x.value for x in page.caption)
+    metrics = page.dataframe[0].value
+    assert metrics["MAE (MWmed)"].tolist() == ["1.749,13", "1.921,74", "1.830,43"]
+    assert metrics["MAPE (%)"].tolist() == ["0,03", "0,50", "0,25"]
 
 
 @pytest.mark.parametrize("horizon", [24, 48])
@@ -189,11 +235,35 @@ def test_v5_preview_uses_the_current_stage_on_every_transition(monkeypatch, tmp_
         issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
         assert issue.options == ["00:00"] and issue.value == f"{day}T03:00:00Z"
         assert with_label(page.selectbox, "Data da emissão").value == date.fromisoformat(day)
-        values = page.dataframe[0].value
+        values = hourly_values(page)
         assert len(values) == horizon
         assert values["Alvo local"].iloc[0].startswith(f"{date.fromisoformat(day):%d/%m/%Y} 01:00")
         expected = pd.read_parquet(versions.partition_path(partitions[stage]), columns=["passo_h", "y_pred"])
-        assert values["Previsto (MWmed)"].tolist() == expected.sort_values("passo_h")["y_pred"].tolist()
+        assert values["Previsto (MWmed)"].tolist() == expected.sort_values("passo_h")["y_pred"].map(lambda v: format_number(v, 2)).tolist()
+
+
+def test_direct_retrospective_then_switches_stage_scenario_and_horizon(monkeypatch, tmp_path):
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
+    page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60)
+    page.session_state["v5_explorer_stage"] = "retrospectiva_2026"
+    page.run()
+    assert not page.exception and not page.warning
+    assert hourly_values(page)["Passo"].tolist() == [str(step) for step in range(1, 25)]
+    for stage, scenario, horizon in [
+        ("validacao_1s2025", "hipotese_Sao_Paulo", 48),
+        ("retrospectiva_2026", "hipotese_Sao_Paulo", 24),
+        ("teste_2025", "hipotese_UTC", 48),
+        ("retrospectiva_2026", "hipotese_UTC", 24),
+    ]:
+        page.selectbox(key="v5_explorer_stage").set_value(stage).run()
+        page.selectbox(key="v5_explorer_scenario").set_value(scenario).run()
+        page.radio(key="v5_explorer_horizon").set_value(horizon).run()
+        assert not page.exception and not page.warning
+        assert hourly_values(page)["Passo"].tolist() == [str(step) for step in range(1, horizon + 1)]
+        if stage == "retrospectiva_2026":
+            assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").value == "2026-01-01T03:00:00Z"
+            assert any(f"Retrospectiva 2026 · {horizon} h · {versions.SCENARIOS[scenario]}" in x.value for x in page.caption)
 
 
 def test_v5_explorer_updates_month_date_and_model_in_the_same_session(monkeypatch, tmp_path):
@@ -205,7 +275,7 @@ def test_v5_explorer_updates_month_date_and_model_in_the_same_session(monkeypatc
     def assert_prediction(timestamp, prediction):
         assert not page.exception and not page.warning
         assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").value == timestamp
-        assert page.dataframe[0].value["Previsto (MWmed)"].eq(prediction).all()
+        assert hourly_values(page)["Previsto (MWmed)"].eq(format_number(prediction, 2)).all()
 
     assert_prediction("2025-08-01T03:00:00Z", 42_000.0)
     with_label(page.selectbox, "Mês da emissão").set_value("2025-07").run()
@@ -218,7 +288,7 @@ def test_v5_explorer_updates_month_date_and_model_in_the_same_session(monkeypatc
     assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").options == ["00:00"]
     with_label(page.selectbox, "Estimador").set_value("piloto_so_carga").run()
     assert_prediction("2025-07-01T03:00:00Z", 39_500.0)
-    assert any("piloto_so_carga" in item.value and "usado no piloto" in item.value
+    assert any("Piloto só com carga" in item.value and "usado no piloto" in item.value
                for item in with_label(page.expander, "Valores horários e calendário").markdown)
 
 
@@ -293,14 +363,17 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
     app.toggle(key="v5_query_episodes").set_value(True).run()
     assert not app.exception and not app.warning
     assert any("Maiores erros horários da amostra exibida" in item.value for item in app.markdown)
-    assert any(all(word in item.value for word in ("episódios", "A621", "A601", "contexto", "temp_rj_c"))
+    assert any(all(word in item.value for word in ("episódios", "A621", "A601", "contexto", "série composta"))
                for item in app.caption)
     episodes = next(table.value for table in app.dataframe if "Erro absoluto (MWmed)" in table.value)
-    assert set(episodes["Passo"]) == set(range(25, 49))
-    assert episodes["Erro absoluto (MWmed)"].is_monotonic_decreasing
-    pd.testing.assert_series_equal(episodes["Erro absoluto (MWmed)"],
-                                  (episodes["Observado (MWmed)"] - episodes["Previsto (MWmed)"]).abs(),
-                                  check_names=False)
+    assert set(episodes["Passo"]) == {str(step) for step in range(25, 49)}
+    entry = next(e for e in versions.detail_index() if
+                 (e["horizon"], e["scenario"], e["stage"]) == (48, "hipotese_UTC", "teste_2025"))
+    original = versions.episode_rows(versions.partition_path(entry), entry["sha256"], "ols_estabilizado", 25, 48, entry["scenario"])
+    expected = original.sort_values("absolute_error", ascending=False)["absolute_error"]
+    assert episodes["Erro absoluto (MWmed)"].tolist() == expected.map(lambda v: format_number(v, 2)).tolist()
+    assert "Eventos" in episodes and episodes["Eventos"].eq("N/D").any()
+    assert app.slider[0].proto.format == "%.1f"
     exports = [item.proto.label for item in app.get("download_button")]
     assert {"Exportar episódios", "Exportar métricas do recorte", "Exportar pares comuns"}.issubset(exports)
     first_month = with_label(app.selectbox, "Mês da emissão (amostra V5)")
@@ -309,6 +382,11 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
     next_month = with_label(app.selectbox, "Mês da emissão (amostra V5)")
     assert not app.warning and next_month.value == "2025-01"
     assert next_month.key != first_month.key
+    app.selectbox(key="evolution_stage").set_value("retrospectiva_2026").run()
+    app.selectbox(key="evolution_block").set_value("1–48 h").run()
+    episodes = next(table.value for table in app.dataframe if "Eventos" in table.value)
+    assert {"Confraternização Universal", "N/D"}.issubset(episodes["Eventos"])
+    assert any("01/01/2026" in x.value and "exemplo ilustrativo único" in x.value for x in app.caption)
     app.selectbox(key="evolution_stage").set_value("teste_2025")
     app.selectbox(key="evolution_version").set_value("v1").run()
     assert not app.exception and app.selectbox(key="evolution_scenario").value == "sem_cenario_bruto"
@@ -335,9 +413,9 @@ def test_preview_distinguishes_missing_estimator_from_missing_observations(
     app.selectbox(key="evolution_model").set_value(model).run()
     app.toggle(key="v5_query_episodes").set_value(True).run()
     assert not app.exception and not app.warning
-    assert any("prévia V5 não inclui previsões horárias" in item.value and model in item.value for item in app.info)
+    assert any("prévia V5 não inclui previsões horárias" in item.value and model_label(model) in item.value for item in app.info)
     assert not any("carga observada" in item.value for item in app.info)
-    assert app.dataframe[0].value["MAE (MWmed)"].notna().any()
+    assert app.dataframe[0].value["MAE (MWmed)"].ne("N/D").any()
 
     app.selectbox(key="evolution_role").set_value("Selecionado")
     monkeypatch.setattr(versions, "episode_rows", lambda *args: pd.DataFrame())
@@ -353,17 +431,16 @@ def test_availability_respects_catalog_dimensions_and_preserves_general_rules():
     app.radio(key="evolution_horizon").set_value(48).run()
     app.selectbox(key="evolution_block").set_value("25–48 h").run()
     catalog = app.dataframe[-1].value
-    assert set(catalog["versao"]) == {"v3"}
-    assert set(catalog["bloco_horas"].dropna()) == {"25–48 h"}
-    assert catalog["bloco_horas"].isna().any()
+    assert set(catalog["versao"]) == {"V3"}
+    assert set(catalog["bloco_horas"]) == {"25–48 h", "N/D"}
     labels = json.loads(app.dataframe[-1].proto.columns)
     assert labels["casas_decimais"]["label"].startswith("Precisão")
     assert labels["dependencia"]["label"] == "Dependência"
-    assert 2 in catalog["casas_decimais"].values
+    assert "2" in catalog["casas_decimais"].values
 
     app.selectbox(key="evolution_role").set_value("Piloto").run()
     catalog = app.dataframe[-1].value
-    assert set(catalog["modelo"]) == {"piloto_so_carga"}
+    assert set(catalog["modelo"]) == {"Piloto só com carga"}
 
     app.selectbox(key="evolution_version").set_value("v5").run()
     assert not app.exception
@@ -381,14 +458,20 @@ def test_historical_pilot_opens_with_results_and_marks_retrospective_out_of_desi
     assert role.value == "Piloto"
     assert app.selectbox(key="evolution_scenario").options == ["Carimbo original · fuso não documentado (Piloto/V1)"]
     metrics = app.dataframe[0].value
-    assert metrics["Estimador"].tolist() == ["piloto_so_carga"]
-    assert metrics["MAE (MWmed)"].iloc[0] == pytest.approx(1203.71, abs=0.01)
+    assert metrics["Estimador"].tolist() == ["Piloto só com carga"]
+    assert metrics["MAE (MWmed)"].iloc[0].startswith("1.203,71")
     app.selectbox(key="evolution_stage").set_value("retrospectiva_2026").run()
-    assert not app.exception and app.dataframe[0].value["MAE (MWmed)"].isna().all()
+    assert not app.exception and app.dataframe[0].value["MAE (MWmed)"].eq("N/D").all()
     assert any("Retrospectiva 2026 está fora do desenho" in item.value for item in app.info)
     catalog = app.dataframe[-1].value
-    assert set(catalog["versao"]) == {"piloto"}
-    assert set(catalog["status"]) == {"fora_do_desenho"}
+    assert set(catalog["versao"]) == {"Piloto histórico"}
+    assert set(catalog["status"]) == {"Fora do desenho"}
+    app.selectbox(key="evolution_pilot_role").set_value("Referência")
+    for horizon in (24, 48):
+        app.radio(key="evolution_horizon").set_value(horizon).run()
+        assert not app.exception and not app.warning and not app.get("plotly_chart")
+        assert app.dataframe[0].value["MAE (MWmed)"].eq("N/D").all()
+        assert set(app.dataframe[-1].value["versao"]) == {"Piloto histórico"}
 
 
 @pytest.mark.parametrize(("role", "stage", "scenario", "model"), [

@@ -5,6 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import plotly.graph_objects as go
 
+from components.metrics_cards import format_number
+from components.page_frame import DAY_LABELS, scope_label, timezone_label
 from services.pattern_service import daily_profile, weekly_profile
 
 
@@ -15,6 +17,24 @@ GRID = "#E7EDF3"
 RED = "#B6465F"
 DEFAULT_TIMEZONE = "America/Sao_Paulo"
 WEEKDAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+PLOTLY_CONFIG = {
+    "displaylogo": False,
+    "locale": "pt-BR",
+    "locales": {"pt-BR": {"dictionary": {
+        "Download plot as a png": "Baixar gráfico em PNG",
+        "Zoom": "Ampliar área",
+        "Pan": "Deslocar",
+        "Box Select": "Selecionar área retangular",
+        "Lasso Select": "Selecionar área livre",
+        "Zoom in": "Aproximar",
+        "Zoom out": "Afastar",
+        "Autoscale": "Ajustar escala automaticamente",
+        "Reset axes": "Restaurar eixos",
+        "Toggle Spike Lines": "Alternar guias do cursor",
+        "Show closest data on hover": "Mostrar o ponto mais próximo",
+        "Compare data on hover": "Comparar pontos ao passar o cursor",
+    }}},
+}
 
 
 def _base_chart(title: str, *, x_title: str = "Data/hora", y_title: str = "Carga (MW)", height: int = 360) -> go.Figure:
@@ -43,7 +63,7 @@ def _base_chart(title: str, *, x_title: str = "Data/hora", y_title: str = "Carga
 
 
 def _empty_chart(title: str, timezone: str) -> go.Figure:
-    figure = _base_chart(title, x_title=f"Data/hora local · {timezone}")
+    figure = _base_chart(title, x_title=f"Data/hora local · {timezone_label(timezone)}")
     figure.add_annotation(
         text="Não há dados no período selecionado.",
         x=0.5, y=0.5, xref="paper", yref="paper", showarrow=False,
@@ -55,7 +75,7 @@ def _empty_chart(title: str, timezone: str) -> go.Figure:
 
 
 def _local_times(timestamps: pd.Series, timezone: str) -> pd.Series:
-    """A escala visual é local; o hover mantém o deslocamento UTC de cada ponto."""
+    """Converte os instantes para a escala local usada no gráfico."""
     return pd.to_datetime(timestamps, utc=True).dt.tz_convert(timezone)
 
 
@@ -92,7 +112,7 @@ def _add_line(
         and not (index + 1 < len(valid) and valid[index + 1] and not gap_values[index + 1])
         for index in range(len(valid))
     ]
-    labels = local.dt.strftime("%d/%m/%Y %H:%M · UTC%z").tolist()
+    labels = local.dt.strftime("%d/%m/%Y %H:%M" if frequency == "hourly" else "%d/%m/%Y").tolist()
     if "n_pairs" in ordered:
         for index, count in enumerate(ordered["n_pairs"]):
             if pd.notna(count):
@@ -131,7 +151,7 @@ def _add_line(
 def history_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIMEZONE, unit: str = "MW") -> go.Figure:
     if observations.empty:
         return _empty_chart("Carga observada no período", timezone)
-    figure = _base_chart("Carga observada no período", x_title=f"Data/hora local · {timezone}", y_title=f"Carga ({unit})")
+    figure = _base_chart("Carga observada no período", x_title=f"Data/hora local · {timezone_label(timezone)}", y_title=f"Carga ({unit})")
     _add_line(figure, observations, "observed_load", "Carga observada", NAVY, timezone, unit=unit)
     figure.update_xaxes(tickformat="%d/%m/%Y<br>%H:%M")
     figure.update_layout(showlegend=False, margin={"b": 48})
@@ -143,7 +163,7 @@ def daily_pattern_chart(observations: pd.DataFrame, timezone: str = DEFAULT_TIME
         return _empty_chart("Perfil médio por hora do dia", timezone)
     summary = daily_profile(observations, timezone)
     figure = _base_chart(
-        "Perfil horário", x_title=f"Hora local · {timezone}", y_title=f"Carga média ({unit})",
+        "Perfil horário", x_title=f"Hora local · {timezone_label(timezone)}", y_title=f"Carga média ({unit})",
     )
     figure.add_trace(go.Scatter(
         x=summary.index, y=summary["mean"], customdata=summary["count"],
@@ -192,7 +212,7 @@ def _mark_issuance(figure: go.Figure, issued_at: pd.Timestamp, timezone: str) ->
     )
     figure.add_annotation(
         x=x_value, y=0.98, yref="paper", yanchor="top", xanchor="left", xshift=4, showarrow=False,
-        text="t₀", hovertext=f"Emissão: {local.strftime('%d/%m/%Y %H:%M · UTC%z')}",
+        text="t₀", hovertext=f"Emissão: {local.strftime('%d/%m/%Y %H:%M')}",
         font={"color": MUTED, "size": 11}, bgcolor="rgba(255,255,255,0.85)",
     )
 
@@ -205,7 +225,7 @@ def explorer_chart(
     if frame.empty:
         return _empty_chart("Explorador de previsões", timezone)
     figure = _base_chart(
-        "Histórico × Previsão", x_title=f"Data/hora local · {timezone}", y_title=f"Carga ({unit})", height=460,
+        "Histórico × Previsão", x_title=f"Data/hora local · {timezone_label(timezone)}", y_title=f"Carga ({unit})", height=460,
     )
     phases = frame["phase"].astype(str).str.casefold()
     historical = frame.loc[phases.isin(["historico", "histórico", "history", "historical"])]
@@ -279,7 +299,7 @@ def temperature_scatter(frame: pd.DataFrame, unit: str = "MWmed", timezone: str 
     colors = [TEAL, NAVY, "#7751A8", "#9C5700"]
     groups = frame.groupby("station", sort=True, observed=True) if "station" in frame else [("Temperatura observada", frame)]
     for index, (station, rows) in enumerate(groups):
-        time_labels = _local_times(rows["timestamp"], timezone).dt.strftime("%d/%m/%Y %H:%M · UTC%z") if "timestamp" in rows else [""] * len(rows)
+        time_labels = _local_times(rows["timestamp"], timezone).dt.strftime("%d/%m/%Y %H:%M") if "timestamp" in rows else [""] * len(rows)
         figure.add_trace(go.Scattergl(
             x=rows["temperature_c"], y=rows["observed_load"], mode="markers", name=str(station),
             customdata=time_labels,
@@ -299,38 +319,42 @@ def load_temperature_chart(
     if frame.empty:
         return _empty_chart("Carga e temperatura no tempo", timezone)
     label = {"hourly": "horária", "daily": "média diária", "weekly": "média semanal"}[frequency]
+    x_label = "Data/hora local" if frequency == "hourly" else "Início do período"
     figure = _base_chart(
-        f"Carga × Temperatura · {label}", x_title=f"Início do período · {timezone}" if frequency != "hourly" else f"Data/hora local · {timezone}",
+        f"Carga × Temperatura · {label}", x_title=f"{x_label} · {timezone_label(timezone)}",
         y_title=f"Carga {'média' if frequency != 'hourly' else 'observada'} ({unit})",
     )
     _add_line(figure, frame, "observed_load", "Carga", NAVY, timezone, unit=unit, frequency=frequency)
     _add_line(figure, frame, "temperature_c", "Temperatura", "#9C5700", timezone, unit="°C", yaxis="y2", frequency=frequency)
+    temperatures = frame["temperature_c"].dropna()
+    span = temperatures.max() - temperatures.min()
+    step = 5 if span >= 20 else 2 if span >= 8 else 1 if span >= 2 else 0.2
     figure.update_layout(
-        yaxis2={"title": {"text": "Temperatura média (°C)" if frequency != "hourly" else "Temperatura (°C)"}, "overlaying": "y", "side": "right", "showgrid": False, "zeroline": False},
+        yaxis2={
+            "title": {"text": "Temperatura média (°C)" if frequency != "hourly" else "Temperatura (°C)"},
+            "overlaying": "y", "side": "right", "showgrid": False, "zeroline": False,
+            "tick0": 0, "dtick": step, "tickformat": ",.1f" if step < 1 else ",.0f",
+        },
         margin={"r": 65},
     )
-    figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
+    if span < 0.4:
+        figure.update_layout(yaxis2_range=[temperatures.min() - 0.2, temperatures.max() + 0.2])
+    figure.update_xaxes(tickformat="%d/%m<br>%H:%M" if frequency == "hourly" else "%d/%m")
     return figure
 
 
 def calendar_profile_chart(profile: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
     if profile.empty:
         return _empty_chart("Perfil por calendário", DEFAULT_TIMEZONE)
-    figure = _base_chart("Perfil por calendário", x_title="Hora local · America/Sao_Paulo", y_title=f"Carga média ({unit})", height=400)
-    names = {
-        "dia_util": "Dia útil", "fim_de_semana": "Fim de semana", "feriado": "Feriado",
-        "ponto_facultativo": "Ponto facultativo", "nao_informado": "Não informado",
-    }
-    scopes = {"federal_administracao": "administração pública federal", "nacional": "nacional", "estadual": "estadual", "municipal": "municipal", "nenhum": "sem evento", "nao_informado": "escopo não informado"}
+    figure = _base_chart("Perfil por calendário", x_title="Hora local · Horário de São Paulo", y_title=f"Carga média ({unit})", height=400)
     colors = [NAVY, TEAL, "#7751A8", "#9C5700", RED, "#52657A"]
     for index, ((day_type, scope), rows) in enumerate(profile.groupby(["day_type", "holiday_scope"], sort=True)):
+        hours = rows["count"].sum()
         rows = rows.set_index("hour").reindex(range(24))
-        label = names.get(day_type, day_type)
-        scope_text = " + ".join(scopes.get(code, code) for code in scope.split("+"))
-        if day_type == "feriado":
-            label += f" · {scope_text}"
-        elif day_type == "ponto_facultativo":
-            label = "Facultativo · " + ("N/D" if scope == "nao_informado" else scope_text)
+        label = DAY_LABELS.get(day_type, day_type)
+        if scope != "nenhum":
+            label += f" · {scope_label(scope)}"
+        label += f" · {format_number(hours, 0)} h"
         valid = rows["mean"].notna().to_numpy()
         marker_sizes = [
             3 if value and not (hour > 0 and valid[hour - 1]) and not (hour < 23 and valid[hour + 1]) else 0
@@ -339,11 +363,13 @@ def calendar_profile_chart(profile: pd.DataFrame, unit: str = "MWmed") -> go.Fig
         figure.add_trace(go.Scatter(
             x=rows.index, y=rows["mean"], customdata=rows["count"], mode="lines+markers" if any(marker_sizes) else "lines", name=label,
             marker={"size": marker_sizes},
-            line={"color": colors[index % len(colors)], "width": 2.3, "dash": ["solid", "dash", "dot"][index % 3]},
+            line={"color": colors[index % len(colors)], "width": 1.6 if hours <= 120 else 2.3,
+                  "dash": "dot" if hours <= 120 else ["solid", "dash", "longdash"][index % 3]},
             connectgaps=False,
             hovertemplate="Hora: %{x:02d}h<br>Carga média: <b>%{y:,.2f} " + unit + "</b><br>%{customdata} observações<extra>%{fullData.name}</extra>",
         ))
-    figure.update_xaxes(dtick=3)
+    ticks = list(range(0, 24, 3))
+    figure.update_xaxes(tickmode="array", tickvals=ticks, ticktext=[f"{hour:02d}h" for hour in ticks])
     figure.update_layout(margin={"b": 84})
     return figure
 
@@ -358,7 +384,7 @@ def monthly_chart(monthly: pd.DataFrame, unit: str = "MWmed") -> go.Figure:
     months = pd.period_range(rows["_month"].min(), rows["_month"].max(), freq="M")
     rows = rows.set_index("_month").reindex(months)
     rows["count"] = rows["count"].fillna(0)
-    figure = _base_chart("Evolução mensal", x_title="Mês / ano · America/Sao_Paulo", y_title=f"Carga média ({unit})")
+    figure = _base_chart("Evolução mensal", x_title="Mês / ano · Horário de São Paulo", y_title=f"Carga média ({unit})")
     figure.add_trace(go.Scatter(
         x=months.to_timestamp(), y=rows["mean"], customdata=rows["count"], mode="lines+markers",
         name="Média mensal observada", line={"color": TEAL, "width": 2.6}, connectgaps=False,

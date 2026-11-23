@@ -33,7 +33,7 @@ def test_explorer_separates_four_series_and_marks_issuance():
     ]
     assert len(figure.layout.shapes) == 1
     assert "MWmed" in figure.layout.yaxis.title.text
-    assert all("UTC-0300" in label for trace in figure.data for label in trace.customdata if label)
+    assert "Horário de São Paulo" in figure.layout.xaxis.title.text
     json.loads(figure.to_json())
 
 
@@ -151,7 +151,7 @@ def test_weather_scatter_uses_webgl_without_discarding_pairs_or_local_timestamps
     figure = temperature_scatter(frame)
     assert figure.data[0].type == "scattergl"
     assert len(figure.data[0].x) == len(frame)
-    assert all("UTC-0300" in value for value in figure.data[0].customdata)
+    assert all("-0300" not in value for value in figure.data[0].customdata)
     assert "31/12/2025 21:00" in figure.data[0].customdata[0]
     assert "%{customdata}" in figure.data[0].hovertemplate
 
@@ -164,6 +164,9 @@ def test_daily_weather_chart_respects_period_boundaries_instead_of_hourly_gap_ru
     assert len(figure.data[0].y) == 2
     assert None not in figure.data[0].y
     assert "média" in figure.layout.yaxis.title.text
+    assert figure.layout.xaxis.tickformat == "%d/%m"
+    assert figure.layout.yaxis2.tickformat == ",.1f"
+    assert figure.layout.yaxis2.dtick == 0.2
     assert "Pares: 1 / 24 h possíveis" in figure.data[0].customdata[0]
     json.loads(figure.to_json())
 
@@ -176,8 +179,10 @@ def test_calendar_chart_keeps_scopes_separate_and_hour_gaps():
     })
     figure = calendar_profile_chart(profile)
     assert len(figure.data) == 2
-    assert any("municipal" in trace.name for trace in figure.data)
-    assert any("nacional" in trace.name for trace in figure.data)
+    assert any("Municipal — Rio de Janeiro" in trace.name for trace in figure.data)
+    assert any("Nacional" in trace.name for trace in figure.data)
+    assert figure.layout.xaxis.ticktext[:2] == ("00h", "03h")
+    assert all(trace.line.dash == "dot" for trace in figure.data)
     assert pd.isna(figure.data[0].y[1])
     json.loads(figure.to_json())
 
