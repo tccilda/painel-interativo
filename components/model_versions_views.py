@@ -113,6 +113,37 @@ def _render_v5(*, legacy_available):
             "Mês da emissão (amostra V5), Estimador, Data da emissão e Hora da emissão têm uma opção "
             "porque o recorte da prévia contém uma única emissão do OLS estabilizado."
         )
+    if not entries:
+        st.info("Nenhuma emissão no recorte selecionado.")
+        return
+    slice_key = f"{scenario}_{stage}_{horizon}"
+    cols = st.columns(4)
+    with cols[0]:
+        month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão", entries, f"v5_month_{slice_key}")
+    entry = entries[month]
+    path = versions.partition_path(entry)
+    catalog = versions.issues_for_models(path, entry["sha256"])
+    models = sorted(catalog["modelo"].unique(), key=lambda name: (not catalog.loc[catalog["modelo"].eq(name), "eh_selecionado"].eq(1).any(), name))
+    with cols[1]:
+        model = st.selectbox("Estimador", models, format_func=model_label, key=f"v5_model_{slice_key}_{month}")
+    model_key = f"{slice_key}_{month}_{model}"
+    options = catalog.loc[catalog["modelo"].eq(model), "origem_t"]
+    times = pd.to_datetime(options, utc=True).dt.tz_convert(versions.TZ)
+    dates = sorted(times.dt.date.unique(), reverse=True)
+    with cols[2]:
+        day = st.selectbox("Data da emissão", dates, format_func=lambda value: value.strftime("%d/%m/%Y"),
+                           key=f"v5_date_{model_key}")
+    with cols[3]:
+        day_times = times.loc[times.dt.date.eq(day)]
+        labels = day_times.dt.strftime("%H:%M")
+        labels = labels.where(~labels.duplicated(keep=False), day_times.dt.strftime("%H:%M:%S %z"))
+        issue = choice("Hora da emissão (horário de São Paulo)", sorted(options.loc[day_times.index], reverse=True),
+                       f"v5_issue_{model_key}_{day}", dict(zip(options.loc[day_times.index], labels)))
+    data = versions.forecast_detail(path, entry["sha256"], horizon, model, issue)
+    observed = versions.load_scenario(str(versions.root()), scenario)
+    t0 = pd.Timestamp(issue)
+    _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, preview=preview)
+
     with st.expander("Detalhes metodológicos"):
         st.write("V2–V4 têm apenas métricas agregadas, em Avaliação de Desempenho e Erros.")
         if not legacy_available:
@@ -133,35 +164,6 @@ def _render_v5(*, legacy_available):
             "simples, usando os mesmos pares, atributos disponíveis na emissão, ajustes em janelas anteriores "
             "e um novo período reservado para teste. A avaliação exibida abrange modelos lineares e referências simples."
         )
-    if not entries:
-        st.info("Nenhuma emissão no recorte selecionado.")
-        return
-    slice_key = f"{scenario}_{stage}_{horizon}"
-    month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão", entries, f"v5_month_{slice_key}")
-    entry = entries[month]
-    path = versions.partition_path(entry)
-    catalog = versions.issues_for_models(path, entry["sha256"])
-    models = sorted(catalog["modelo"].unique(), key=lambda name: (not catalog.loc[catalog["modelo"].eq(name), "eh_selecionado"].eq(1).any(), name))
-    model = st.selectbox("Estimador", models, format_func=model_label, key=f"v5_model_{slice_key}_{month}")
-    model_key = f"{slice_key}_{month}_{model}"
-    options = catalog.loc[catalog["modelo"].eq(model), "origem_t"]
-    times = pd.to_datetime(options, utc=True).dt.tz_convert(versions.TZ)
-    dates = sorted(times.dt.date.unique(), reverse=True)
-    cols = st.columns(2)
-    with cols[0]:
-        day = st.selectbox("Data da emissão", dates, format_func=lambda value: value.strftime("%d/%m/%Y"),
-                           key=f"v5_date_{model_key}")
-    with cols[1]:
-        day_times = times.loc[times.dt.date.eq(day)]
-        labels = day_times.dt.strftime("%H:%M")
-        labels = labels.where(~labels.duplicated(keep=False), day_times.dt.strftime("%H:%M:%S %z"))
-        issue = choice("Hora da emissão (horário de São Paulo)", sorted(options.loc[day_times.index], reverse=True),
-                       f"v5_issue_{model_key}_{day}", dict(zip(options.loc[day_times.index], labels)))
-    data = versions.forecast_detail(path, entry["sha256"], horizon, model, issue)
-    observed = versions.load_scenario(str(versions.root()), scenario)
-    t0 = pd.Timestamp(issue)
-    _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, preview=preview)
-
 
 def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, *, preview):
     future = data.rename(columns={"instante_alvo": "timestamp", "y_real": "observed_load",

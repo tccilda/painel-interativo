@@ -21,7 +21,7 @@ PLOTLY_CONFIG = {
     "displaylogo": False,
     "locale": "pt-BR",
     "locales": {"pt-BR": {"dictionary": {
-        "Download plot as a png": "Baixar gráfico em PNG",
+        "Download plot as a PNG": "Baixar gráfico em PNG",
         "Zoom": "Ampliar área",
         "Pan": "Deslocar",
         "Box Select": "Selecionar área retangular",
