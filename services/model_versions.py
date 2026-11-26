@@ -348,15 +348,21 @@ def legacy_bundle(path, digest):
         return bundle
 
 
+def _legacy_url():
+    if setting("ENERGY_FORECAST_DETAIL_HAS_LEGACY", "true").strip().lower() == "false":
+        return ""
+    return setting("ENERGY_FORECAST_DETAIL_URL")
+
+
 def legacy_available():
-    return (_details_dir() / "painel.zip").is_file() or bool(setting("ENERGY_FORECAST_DETAIL_URL"))
+    return (_details_dir() / "painel.zip").is_file() or bool(_legacy_url())
 
 
 def legacy_path():
     local = _details_dir() / "painel.zip"
     if local.is_file():
         return local
-    url = setting("ENERGY_FORECAST_DETAIL_URL")
+    url = _legacy_url()
     return _download(url, local.name, LEGACY_SHA, 24_000_000) if url else None
 
 

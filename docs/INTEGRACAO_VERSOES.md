@@ -1,6 +1,6 @@
 # Evolução experimental V1–V5
 
-O catálogo é a fonte padrão. O alvo é ONS_SECO_piloto, carga do ONS Sudeste/Centro-Oeste em MWmed. O RJ entra como contexto acadêmico. A série não mede a carga municipal. V5 é a versão padrão. As três páginas originais permanecem. Em um clone limpo, a amostra de 12 emissões reais do manifesto permite abrir 24h e 48h nas três etapas e nas duas hipóteses.
+O catálogo é a fonte padrão. O alvo é ONS_SECO_piloto, carga do ONS Sudeste/Centro-Oeste em MWmed. O Rio de Janeiro entra como contexto acadêmico. A V5 é a versão padrão nas três páginas. O checkout da branch da amostra inclui 1.420 emissões reais de 24 h e 48 h, em 22 meses de emissão, três etapas e duas hipóteses.
 
 - **Explorador:** V5 consulta uma emissão por cenário, etapa, horizonte, estimador e data/hora. V1 conserva a leitura do pacote legado e o carimbo interpretado apenas para exibição. Para V2–V4, o painel explica a disponibilidade exclusivamente agregada.
 - **Desempenho:** os CSVs consolidados fornecem V1–V4 e o piloto histórico. Os CSVs V5 fornecem a versão atual. O painel separa estimadores selecionados, alternativas, pilotos e referências. As métricas por hora ou mês civil referem-se ao alvo. A tabela V4 × V5 usa o CSV de pares comuns e calcula as variações relativas de MAE e RMSE sobre o valor V4 nesse mesmo conjunto.
@@ -32,7 +32,11 @@ O pacote local conferido tem **90 objetos e 94.804.266 bytes**: um índice de 30
 
 O carregador precisa receber o conteúdo original de cada objeto por GET HTTPS sem credenciais na URL. Links de compartilhamento que devolvem uma página HTML não substituem esses arquivos. Consulte o [roteiro de configuração e validação](DEPLOY_STREAMLIT.md#previsões-completas-v1-e-v5).
 
-No Community Cloud, essas variáveis podem ser definidas no campo **Secrets** como chaves TOML de nível superior. O índice informa hashes e limites de cada partição. O painel só baixa a partição do mês/recorte consultado e confirma SHA-256 antes de abrir. O cache é temporário e pode ser reconstruído a partir dessa fonte após reinício. O ZIP legado só é buscado quando V1 é escolhida. Em instalações com arquivos locais montados, ENERGY_FORECAST_DETAIL_DIR substitui a URL. Sem detalhe integral configurado, o Explorador seleciona explicitamente a amostra V5 versionada. Essa amostra tem 432 alvos originais e ocupa cerca de 122 kB. Regere-a com `python scripts/prepare_model_versions.py --preview` após preparar o detalhe integral. As métricas não são recalculadas a partir da amostra.
+No Community Cloud, essas variáveis podem ser definidas no campo **Secrets** como chaves TOML de nível superior. O índice informa hashes e limites de cada partição. O painel baixa a partição do mês e recorte consultado e confirma SHA-256 antes de abrir. O cache é temporário. O ZIP legado só é buscado quando V1 é escolhida. Em instalações com arquivos locais montados, ENERGY_FORECAST_DETAIL_DIR substitui a URL.
+
+Sem fonte integral, o Explorador usa a amostra V5 versionada, com 51.120 passos originais e cerca de 1,6 MB. Para cada mês, hipótese, etapa e horizonte, o preparador seleciona dois dias de semana e dois dias de fim de semana nos quartis de dias disponíveis, com emissões às 00 h, 06 h, 12 h e 18 h no horário de São Paulo. Mantém também as 12 emissões de referência do manifesto. Os subconjuntos preservam apenas o estimador selecionado. A cobertura é temporal e não constitui uma amostra probabilística nem substitui os resultados dos recortes completos.
+
+Regere a amostra com `python scripts/prepare_model_versions.py --preview --detail-dir <diretório-completo>`. O preparador valida hashes, contagens do acervo e a presença de todos os passos da emissão. Os arquivos originais e os agregados permanecem intactos.
 
 ## Interpretação
 

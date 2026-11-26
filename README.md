@@ -16,7 +16,7 @@ A [matriz de requisitos](docs/MATRIZ_REQUISITOS.md) relaciona o pedido aos dados
 
 ## Situação da publicação
 
-O checkout abre o catálogo regional com métricas e série auditada. O Explorador abre com uma amostra de 12 emissões reais. A consulta integral V1/V5 usa as partições descritas no guia. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
+O checkout abre o catálogo regional com métricas e série auditada. O Explorador desta branch inclui 1.420 emissões reais da V5. A consulta integral V1/V5 usa as partições descritas no guia. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
 
 ## Proveniência do pacote legado
 
@@ -92,7 +92,7 @@ Carregamentos padrão e catálogo usam `st.cache_data` com assinatura dos arquiv
 
 ## As três abas
 
-1. **Explorador de Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. Compare MAE e MAPE da emissão com as referências nos mesmos alvos válidos e consulte o resumo do recorte completo. A prévia pública traz 12 emissões reais, uma por combinação de hipótese, conjunto e horizonte. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
+1. **Explorador de Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. Compare MAE e MAPE da emissão com as referências nos mesmos alvos válidos e consulte o resumo do recorte completo. A amostra V5 cobre os meses disponíveis nas duas hipóteses, três etapas e dois horizontes. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
 2. **Avaliação de Desempenho e Erros.** Consulte as métricas fornecidas V1–V5 por versão, hipótese, etapa, horizonte e bloco. Veja os denominadores de MAE/RMSE e MAPE, a curva por passo, os dois horizontes com referências e o recorte pareado V4 × V5. Os episódios V1/V5 usam um mês de emissão de cada vez, com filtros no alvo por dia da semana, calendário e temperatura.
 3. **Sazonalidade, Clima e Calendário.** Compare perfis horários e semanais, médias mensais e anuais, dispersão e séries de carga e temperatura. Filtre as categorias de calendário por tipo e âmbito. As contagens por categoria usam horas únicas, agrupam âmbitos simultâneos e destacam grupos com até 120 h de observação.
 
