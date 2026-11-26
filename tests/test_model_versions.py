@@ -60,6 +60,18 @@ def with_label(widgets, label):
     return next(widget for widget in widgets if widget.label == label)
 
 
+def assert_fixed(page, label, value):
+    assert all(widget.label != label for widget in page.selectbox)
+    assert any(item.value == f"{label} · {value}" for item in page.caption)
+
+
+def select_estimator(app, model):
+    if any(widget.key == "evolution_model" for widget in app.selectbox):
+        app.selectbox(key="evolution_model").set_value(model).run()
+    else:
+        assert_fixed(app, "Estimador", model_label(model))
+
+
 def hourly_values(page):
     return next(table.value for table in page.dataframe if "Alvo local" in table.value)
 
@@ -69,11 +81,14 @@ def test_v5_starts_with_exact_horizons_and_older_aggregate_only(monkeypatch, tmp
     monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception
-    assert page.selectbox(key="catalog_explorer_version").value == "V5"
+    assert_fixed(page, "Versão", "V5")
+    assert_fixed(page, "Estimador", model_label("ols_estabilizado"))
+    assert_fixed(page, "Mês da emissão", "07/2025")
+    assert_fixed(page, "Data da emissão", "01/07/2025")
     assert len(hourly_values(page)) == 24
     page.radio(key="v5_explorer_horizon").set_value(48).run()
     assert not page.exception and len(hourly_values(page)) == 48
-    assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+    assert_fixed(page, "Versão", "V5")
     assert all(widget.label != "Fonte" for widget in page.selectbox)
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
     assert any("V2–V4 têm apenas métricas agregadas" in item.value for item in method.markdown)
@@ -186,7 +201,7 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     temperature = next(card for card in page.metric if card.label == "Temperatura em t₀")
     assert all(word in temperature.proto.help for word in ("contexto", "1 h", "A621", "A601", "causal"))
     coverage = next(item.value for item in page.caption if "97 emissões reais" in item.value)
-    assert all(text in coverage for text in ("24 ou 48 alvos", "103.032 a 347.760 pares", "pacote legado V1"))
+    assert all(text in coverage for text in ("24 ou 48 alvos", "103.032 a 347.760 pares"))
     issue_metrics, metrics = [table.value for table in page.dataframe[:2]]
     assert issue_metrics["Estimador"].tolist() == metrics["Estimador"].tolist() == [
         "OLS estabilizado", "Sazonal semanal", "Persistência",
@@ -198,12 +213,11 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert metrics["Pares"].tolist() == ["104.760"] * 3
     month = with_label(page.selectbox, "Mês da emissão (amostra V5)")
     assert len(month.options) == 6 and month.value == "2025-07"
-    issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
-    assert issue.options == ["00:00"] and issue.value == "2025-07-01T03:00:00Z"
+    assert_fixed(page, "Hora da emissão (horário de São Paulo)", "00:00")
     details = with_label(page.expander, "Valores horários e calendário")
     assert any("Estimador exibido" in item.value and "OLS estabilizado" in item.value
                and "escolhido na avaliação" in item.value for item in details.markdown)
-    assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+    assert_fixed(page, "Versão", "V5")
     month.set_value("2025-11").run()
     assert not page.exception and not page.warning
     dates = with_label(page.selectbox, "Data da emissão")
@@ -251,14 +265,14 @@ def test_v5_preview_uses_the_current_stage_on_every_transition(monkeypatch, tmp_
         page.selectbox(key="v5_explorer_stage").set_value(stage).run()
         assert not page.exception and not page.warning
         assert len(page.metric) == 4 and len(page.get("plotly_chart")) == 1
-        issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
-        assert issue.options == ["00:00"] and issue.value == f"{day}T03:00:00Z"
+        issue = f"{day}T03:00:00Z"
+        assert_fixed(page, "Hora da emissão (horário de São Paulo)", "00:00")
         assert with_label(page.selectbox, "Data da emissão").value == date.fromisoformat(day)
         values = hourly_values(page)
         assert len(values) == horizon
         assert values["Alvo local"].iloc[0].startswith(f"{date.fromisoformat(day):%d/%m/%Y} 01:00")
         expected = pd.read_parquet(versions.partition_path(partitions[stage]), columns=["passo_h", "y_pred"],
-                                   filters=[("origem_t", "=", issue.value)])
+                                   filters=[("origem_t", "=", issue)])
         assert values["Previsto (MWmed)"].tolist() == expected.sort_values("passo_h")["y_pred"].map(lambda v: format_number(v, 2)).tolist()
 
 
@@ -282,7 +296,7 @@ def test_direct_retrospective_then_switches_stage_scenario_and_horizon(monkeypat
         assert not page.exception and not page.warning
         assert hourly_values(page)["Passo"].tolist() == [str(step) for step in range(1, horizon + 1)]
         if stage == "retrospectiva_2026":
-            assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").value == "2026-01-01T03:00:00Z"
+            assert_fixed(page, "Hora da emissão (horário de São Paulo)", "00:00")
             assert any(f"Retrospectiva 2026 · {horizon} h · {versions.SCENARIOS[scenario]}" in x.value for x in page.caption)
 
 
@@ -294,7 +308,13 @@ def test_v5_explorer_updates_month_date_and_model_in_the_same_session(monkeypatc
 
     def assert_prediction(timestamp, prediction):
         assert not page.exception and not page.warning
-        assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").value == timestamp
+        controls = [widget for widget in page.selectbox if widget.label == "Hora da emissão (horário de São Paulo)"]
+        if controls:
+            assert controls[0].value == timestamp
+        else:
+            local = pd.Timestamp(timestamp).tz_convert(versions.TZ)
+            assert_fixed(page, "Hora da emissão (horário de São Paulo)", f"{local:%H:%M}")
+            assert hourly_values(page)["Alvo local"].iloc[0].startswith(f"{local + timedelta(hours=1):%d/%m/%Y %H:%M}")
         assert hourly_values(page)["Previsto (MWmed)"].eq(format_number(prediction, 2)).all()
 
     assert_prediction("2025-08-01T03:00:00Z", 42_000.0)
@@ -305,7 +325,7 @@ def test_v5_explorer_updates_month_date_and_model_in_the_same_session(monkeypatc
     assert_prediction("2025-07-02T03:00:00Z", 41_000.0)
     with_label(page.selectbox, "Data da emissão").set_value(date(2025, 7, 1)).run()
     assert_prediction("2025-07-01T03:00:00Z", 40_010.0)
-    assert with_label(page.selectbox, "Hora da emissão (horário de São Paulo)").options == ["00:00"]
+    assert_fixed(page, "Hora da emissão (horário de São Paulo)", "00:00")
     with_label(page.selectbox, "Estimador").set_value("piloto_so_carga").run()
     assert_prediction("2025-07-01T03:00:00Z", 39_500.0)
     assert any("Piloto só com carga" in item.value and "usado no piloto" in item.value
@@ -410,7 +430,8 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
     assert any("01/01/2026" in x.value and "exemplo ilustrativo único" in x.value for x in app.caption)
     app.selectbox(key="evolution_stage").set_value("teste_2025")
     app.selectbox(key="evolution_version").set_value("v1").run()
-    assert not app.exception and app.selectbox(key="evolution_scenario").value == "sem_cenario_bruto"
+    assert not app.exception
+    assert_fixed(app, "Hipótese de horário", versions.SCENARIOS["sem_cenario_bruto"])
     assert app.dataframe[0].value["Versão"].tolist() == ["V1"]
 
 
@@ -431,7 +452,7 @@ def test_preview_distinguishes_missing_estimator_from_missing_observations(
     app.selectbox(key="evolution_stage").set_value(stage)
     app.radio(key="evolution_horizon").set_value(horizon)
     app.selectbox(key="evolution_role").set_value(role).run()
-    app.selectbox(key="evolution_model").set_value(model).run()
+    select_estimator(app, model)
     app.toggle(key="v5_query_episodes").set_value(True).run()
     assert not app.exception and not app.warning
     assert any("prévia V5 não inclui previsões horárias" in item.value and model_label(model) in item.value for item in app.info)
@@ -477,7 +498,7 @@ def test_historical_pilot_opens_with_results_and_marks_retrospective_out_of_desi
     assert not app.exception
     role = next(widget for widget in app.selectbox if widget.label == "Grupo de estimadores")
     assert role.value == "Piloto"
-    assert app.selectbox(key="evolution_scenario").options == ["Carimbo original · fuso não documentado (Piloto/V1)"]
+    assert_fixed(app, "Hipótese de horário", versions.SCENARIOS["sem_cenario_bruto"])
     metrics = app.dataframe[0].value
     assert metrics["Estimador"].tolist() == ["Piloto só com carga"]
     assert metrics["MAE (MWmed)"].iloc[0].startswith("1.203,71")
@@ -499,7 +520,7 @@ def test_historical_pilot_opens_with_results_and_marks_retrospective_out_of_desi
     ("Piloto", "teste_2025", "hipotese_UTC", "piloto_so_carga"),
     ("Referência", "validacao_1s2025", "hipotese_Sao_Paulo", "persistencia"),
 ])
-def test_version_axis_keeps_near_equal_values_readable_and_exports_full_precision(
+def test_version_bars_start_at_zero_for_close_values_and_export_full_precision(
     monkeypatch, role, stage, scenario, model,
 ):
     encoded = []
@@ -507,25 +528,32 @@ def test_version_axis_keeps_near_equal_values_readable_and_exports_full_precisio
 
     def capture_csv(frame):
         data = csv_bytes(frame)
-        encoded.append(data)
+        if {"versao", "modelo", "n_pares", "mae_mwmed"} <= set(frame):
+            encoded.append(data)
         return data
 
     monkeypatch.setattr(views, "csv_bytes", capture_csv)
     app = AppTest.from_string(
         "from components.model_versions_views import render_evolution; render_evolution()", default_timeout=60,
     ).run()
-    axis = json.loads(app.get("plotly_chart")[0].proto.spec)["layout"]["yaxis"]
-    assert "range" not in axis  # OLS com variação real conserva a escala automática.
+    chart = json.loads(app.get("plotly_chart")[0].proto.spec)
+    assert chart["data"][0]["type"] == "bar"
+    assert chart["layout"]["yaxis"]["range"][0] == 0
     app.selectbox(key="evolution_role").set_value(role)
     app.selectbox(key="evolution_scenario").set_value(scenario)
     app.selectbox(key="evolution_stage").set_value(stage).run()
+    select_estimator(app, model)
     encoded.clear()
-    app.selectbox(key="evolution_model").set_value(model).run()
+    app.run()
     assert not app.exception
-    axis = json.loads(app.get("plotly_chart")[0].proto.spec)["layout"]["yaxis"]
+    chart = json.loads(app.get("plotly_chart")[0].proto.spec)
+    assert chart["data"][0]["type"] == "bar"
+    assert chart["layout"]["separators"] == ",."
+    axis = chart["layout"]["yaxis"]
     assert axis["tickformat"] == ",.2f"
     lower, upper = axis["range"]
-    assert upper - lower == pytest.approx(0.1)
+    assert lower == 0 and upper > 100
+    assert any("pares comuns" in item.value for item in app.caption)
     values = versions.read_csv(BytesIO(encoded[0]))["mae_mwmed"]
     original = versions.metric_tables(str(versions.root()))["globais"].query(
         "cenario == @scenario and etapa == @stage and modelo == @model and horizonte_h == 24"
@@ -549,12 +577,10 @@ def test_v1_episode_month_follows_the_current_stage(monkeypatch, tmp_path):
     ).run()
     page.toggle(key="v1_query_episodes").set_value(True).run()
     assert not page.exception and not page.warning
-    first_month = with_label(page.selectbox, "Mês da emissão")
-    assert first_month.value == "2025-07"
+    assert_fixed(page, "Mês da emissão", "07/2025")
     with_label(page.selectbox, "Etapa").set_value("retrospectiva_2026").run()
-    next_month = with_label(page.selectbox, "Mês da emissão")
     assert not page.exception and not page.warning
-    assert next_month.value == "2026-01" and next_month.key != first_month.key
+    assert_fixed(page, "Mês da emissão", "01/2026")
 
 
 def test_compact_manifest_rejects_tampered_metrics(tmp_path):

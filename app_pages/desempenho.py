@@ -52,7 +52,7 @@ def render() -> None:
             for column, (horizon, (runs, models)) in zip(columns, choices.items()):
                 with column:
                     if models:
-                        selected_model = st.selectbox(f"Modelo {horizon} h", models, format_func=lambda value: f"{value[0]} · {value[1]}", key=f"comparison_model_{horizon}_{settings.mode}")
+                        selected_model = st.selectbox(f"Modelo {horizon} h", models, format_func=lambda value: f"{value[0]} · {value[1]}", key=f"comparison_model_{horizon}_{settings.mode}", placeholder="Selecione uma opção")
                         chosen_ids.extend(runs.loc[(runs["model_name"] == selected_model[0]) & (runs["model_version"] == selected_model[1]), "forecast_id"])
     else:
         chosen_ids = catalog["forecast_id"].tolist()
@@ -83,12 +83,12 @@ def render() -> None:
     splits = [value for value in ("test_2025", "forecast_2026", "validation_2025", "unspecified") if value in set(summary["dataset_split"])]
     controls = st.columns([1, 1.6])
     with controls[0]:
-        split = st.selectbox("Conjunto", splits, format_func=lambda value: SPLIT_LABELS[value], key=f"performance_split_{settings.mode}")
+        split = st.selectbox("Conjunto", splits, format_func=lambda value: SPLIT_LABELS[value], key=f"performance_split_{settings.mode}", placeholder="Selecione uma opção")
     detail = summary.loc[summary["dataset_split"] == split]
     selected = rows.loc[rows["dataset_split"] == split]
     reference_options = [(h, segment) for h, segment in SEGMENTS if ((detail["horizon_hours"] == h) & (detail["segment"] == segment)).any()]
     with controls[1]:
-        reference = st.selectbox("Janela das referências", reference_options or [(24, "1–24 h")], format_func=lambda value: f"{value[0]} h · passos {value[1]}")
+        reference = st.selectbox("Janela das referências", reference_options or [(24, "1–24 h")], format_func=lambda value: f"{value[0]} h · passos {value[1]}", placeholder="Selecione uma opção")
     models = detail.loc[(detail["method"] == "Modelo") & (detail["segment"] == "1–24 h")]
     paired = models["horizon_hours"].nunique() == 2 and models.get("comparison_verified", pd.Series(False, index=models.index)).fillna(False).all()
     aggregate_only = selected.empty
@@ -135,11 +135,11 @@ def render() -> None:
     st.subheader("Maiores Erros")
     filters = st.columns([1, 1.15, 1.4, 1.6])
     with filters[0]:
-        month = st.selectbox("Mês", [None] + sorted(selected["month"].dropna().astype(int).unique().tolist()), format_func=lambda value: "Todos" if value is None else f"{value:02d}", key=f"error_month_{settings.mode}_{split}")
+        month = st.selectbox("Mês", [None] + sorted(selected["month"].dropna().astype(int).unique().tolist()), format_func=lambda value: "Todos" if value is None else f"{value:02d}", key=f"error_month_{settings.mode}_{split}", placeholder="Selecione uma opção")
     with filters[1]:
-        weekday = st.selectbox("Dia da semana", [None] + list(range(7)), format_func=lambda value: "Todos" if value is None else ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][value], key=f"error_weekday_{settings.mode}_{split}")
+        weekday = st.selectbox("Dia da semana", [None] + list(range(7)), format_func=lambda value: "Todos" if value is None else ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][value], key=f"error_weekday_{settings.mode}_{split}", placeholder="Selecione uma opção")
     with filters[2]:
-        day_types = st.multiselect("Calendário", sorted(selected["day_type"].unique()), format_func=lambda value: DAY_LABELS.get(value, value), placeholder="Todos", key=f"error_days_{settings.mode}_{split}")
+        day_types = st.multiselect("Calendário", sorted(selected["day_type"].unique()), format_func=lambda value: DAY_LABELS.get(value, value), placeholder="Todos", key=f"error_days_{settings.mode}_{split}", wrap=True)
     temp_range = None
     with filters[3]:
         temperatures = selected["temperature_c"].dropna()
@@ -161,5 +161,5 @@ def render() -> None:
     display["day_type"] = display["day_type"].map(DAY_LABELS).fillna("Não informado")
     display["holiday_scope"] = display["holiday_scope"].map(SCOPE_LABELS).fillna("Não informado")
     columns = ["issued_at", "timestamp", "model_label", "forecast_step", "observed_load", "predicted_load", "absolute_error", "day_type", "holiday_scope", "temperature_c"]
-    data_table(display[columns].rename(columns={"issued_at": "Emissão t₀", "timestamp": "Instante previsto", "model_label": "Horizonte", "forecast_step": "Passo", "observed_load": f"Real ({settings.unit})", "predicted_load": f"Previsto ({settings.unit})", "absolute_error": f"Erro absoluto ({settings.unit})", "day_type": "Calendário", "holiday_scope": "Âmbito", "temperature_c": "Temp. (°C)"}), height=390)
+    data_table(display[columns].rename(columns={"issued_at": "Emissão t₀", "timestamp": "Instante previsto", "model_label": "Horizonte", "forecast_step": "Passo", "observed_load": f"Real ({settings.unit})", "predicted_load": f"Previsto ({settings.unit})", "absolute_error": f"Erro absoluto ({settings.unit})", "day_type": "Calendário", "holiday_scope": "Âmbito", "temperature_c": "Temp. (°C)"}), height=390, column_decimals={"Temp. (°C)": 1})
     st.download_button("Exportar episódios", csv_bytes(worst.assign(data_source=bundle.mode)), file_name=f"{'sintetico_' if bundle.mode == 'demo' else ''}maiores_erros_{split}.csv", mime="text/csv")

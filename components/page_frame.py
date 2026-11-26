@@ -101,6 +101,15 @@ def page_header(title: str) -> tuple[DataBundle, SidebarSettings]:
     return bundle, settings
 
 
+def available_choice(label, options, *, key, format_func=str, default=None):
+    """Mostra o valor fixo ou mantém o seletor com sua chave quando há alternativas."""
+    if len(options) == 1:
+        st.caption(f"{label} · {format_func(options[0])}")
+        return options[0]
+    index = options.index(default) if default in options else 0
+    return st.selectbox(label, options, key=key, index=index, format_func=format_func, placeholder="Selecione uma opção")
+
+
 def forecast_picker(
     bundle: DataBundle, settings: SidebarSettings, key: str,
     candidates: pd.DataFrame | None = None,
@@ -114,13 +123,13 @@ def forecast_picker(
     date_options = sorted(dates.unique(), reverse=True)
     left, right = st.columns([1, 1.6])
     with left:
-        selected_date = st.selectbox(
+        selected_date = available_choice(
             "Data da emissão", date_options, format_func=lambda value: value.strftime("%d/%m/%Y"),
             key=f"{key}_date_{settings.mode}_{settings.horizon_hours}_{settings.region}_{settings.unit}",
         )
     catalog = catalog.loc[dates == selected_date].reset_index(drop=True)
     with right:
-        index = st.selectbox(
+        index = available_choice(
             "Hora / execução", list(range(len(catalog))),
             format_func=lambda index: f"{pd.Timestamp(catalog.iloc[index]['issued_at']).tz_convert(settings.timezone).strftime('%H:%M')} · {model_label(catalog.iloc[index]['model_name'])}",
             key=f"{key}_{settings.mode}_{settings.horizon_hours}_{settings.region}_{settings.unit}",
