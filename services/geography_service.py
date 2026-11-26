@@ -17,7 +17,6 @@ from services.data_loader import DataBundle, empty_observations, empty_weather
 
 
 TARGET_REGION = "Município do Rio de Janeiro"
-ACADEMIC_SERIES_REGION = "Subsistema Sudeste/Centro-Oeste"
 KNOWN_REGIONAL_ARCHIVE_SHA256 = "b10830eaae445d958d42f05f00551b66a500126af7cbfdfd7d981f34f7e7f9d7"
 ONS_SOURCE_URL = "https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/balanco_energia_subsistema_ho/BALANCO_ENERGIA_SUBSISTEMA_2024.csv"
 INMET_SOURCE_URL = "https://apitempo.inmet.gov.br/estacoes/T"
@@ -139,18 +138,6 @@ def geographic_status(bundle: DataBundle) -> dict:
         "evidence_url": None, "evidence": {}, **station_status,
     }
     digest = str(bundle.provenance.get("archive_sha256") or bundle.provenance.get("sha256") or "").lower()
-    if (
-        bundle.mode == "provided"
-        and bundle.provenance.get("archive_sha256") == KNOWN_REGIONAL_ARCHIVE_SHA256
-        and result["source_regions"] == [ACADEMIC_SERIES_REGION]
-    ):
-        result.update(
-            status="academic_series",
-            source_region=ACADEMIC_SERIES_REGION,
-            reason="Carga regional usada como referência no TCC sobre o Rio de Janeiro.",
-            evidence_url=ONS_SOURCE_URL,
-        )
-        return result
     if digest == KNOWN_REGIONAL_ARCHIVE_SHA256:
         result.update({
             "status": "incompatible", "source_region": "Subsistema Sudeste/Centro-Oeste",
@@ -212,7 +199,7 @@ def municipal_bundle(bundle: DataBundle) -> DataBundle:
     if quarantine:
         provenance["geographic_quarantine"] = quarantine
     issues = list(bundle.issues)
-    if audit["status"] in ("synthetic", "academic_series"):
+    if audit["status"] == "synthetic":
         return replace(bundle, provenance=provenance, issues=issues)
     if "station" in bundle.weather:
         weather = bundle.weather.loc[bundle.weather["station"].isin(audit["municipality_weather_stations"])].copy()

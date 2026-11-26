@@ -3,7 +3,7 @@
 import pandas as pd
 import streamlit as st
 
-from components.charts import degradation_chart
+from components.charts import PLOTLY_CONFIG, degradation_chart
 from components.page_frame import DAY_LABELS, SCOPE_LABELS, SPLIT_LABELS, get_catalog, page_header
 from components.tables import csv_bytes, data_table
 from services.analysis_service import build_evaluation_rows, comparison_metrics, error_by_lead, forecast_identifier, largest_errors
@@ -30,7 +30,12 @@ def _comparison_table(detail, reference, unit, synthetic):
 
 
 def render() -> None:
-    bundle, settings = page_header("Desempenho e Erros")
+    if st.session_state.get("version_catalog_mode"):
+        from components.model_versions_views import render_evolution
+
+        render_evolution()
+        return
+    bundle, settings = page_header("Avaliação de Desempenho e Erros")
     catalog = get_catalog(bundle, settings)
     if catalog.empty:
         st.info("Nenhuma previsão disponível para avaliação.")
@@ -124,7 +129,7 @@ def render() -> None:
         else:
             figure = degradation_chart(by_lead, unit=settings.unit, metric=metric.lower())
             figure.update_layout(title_text=None, margin={"t": 20})
-            st.plotly_chart(figure, width="stretch", config={"displaylogo": False})
+            st.plotly_chart(figure, width="stretch", config=PLOTLY_CONFIG)
     except ValueError as exc:
         st.error(f"Curva indisponível: {exc}")
     st.subheader("Maiores Erros")
@@ -149,9 +154,10 @@ def render() -> None:
     if worst.empty:
         st.info("Nenhum episódio atende aos filtros.")
         return
+    st.caption("Emissão e alvo no horário de São Paulo.")
     display = worst.copy()
     for column in ("timestamp", "issued_at"):
-        display[column] = display[column].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M %z")
+        display[column] = display[column].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M")
     display["day_type"] = display["day_type"].map(DAY_LABELS).fillna("Não informado")
     display["holiday_scope"] = display["holiday_scope"].map(SCOPE_LABELS).fillna("Não informado")
     columns = ["issued_at", "timestamp", "model_label", "forecast_step", "observed_load", "predicted_load", "absolute_error", "day_type", "holiday_scope", "temperature_c"]

@@ -13,7 +13,7 @@ from services.history_service import future_observation_count
 
 SPLIT_LABELS = {
     "validation_2025": "Validação 2025", "test_2025": "Teste 2025",
-    "forecast_2026": "Forecast 2026", "unspecified": "Não classificado",
+    "forecast_2026": "Retrospectiva 2026", "unspecified": "Não classificado",
 }
 DAY_LABELS = {
     "dia_util": "Dia útil", "fim_de_semana": "Fim de semana", "feriado": "Feriado",
@@ -21,8 +21,37 @@ DAY_LABELS = {
 }
 SCOPE_LABELS = {
     "nacional": "Nacional", "estadual": "Estadual", "municipal": "Municipal",
+    "estadual_rj": "Estadual", "municipal_rio": "Municipal",
+    "federal_administracao": "Administração pública federal",
     "nenhum": "Sem evento", "nao_informado": "Não informado",
 }
+
+
+CALENDAR_CONTEXT = (
+    "Atos municipais e estaduais referem-se ao município e ao estado do Rio de Janeiro, respectivamente. "
+    "Eles contextualizam a carga agregada do subsistema ONS Sudeste/Centro-Oeste."
+)
+MODEL_LABELS = {
+    "ols_estabilizado": "OLS estabilizado", "ols_bruto": "OLS bruto",
+    "piloto_so_carga": "Piloto só com carga", "ridge_1": "Ridge 1",
+    "ridge_10": "Ridge 10", "ridge_100": "Ridge 100",
+    "sazonal_semanal": "Sazonal semanal", "persistencia": "Persistência",
+}
+
+
+def model_label(model: str) -> str:
+    return MODEL_LABELS.get(model, model)
+
+
+def scope_label(scope: str, *, territory: bool = True) -> str:
+    codes = ("municipal", "municipal_rio", "estadual", "estadual_rj")
+    names = [SCOPE_LABELS.get(code, "Não informado")
+             + (" — Rio de Janeiro" if territory and code in codes else "") for code in scope.split("+")]
+    return " + ".join(names)
+
+
+def timezone_label(timezone: str) -> str:
+    return "Horário de São Paulo" if timezone == "America/Sao_Paulo" else timezone
 
 
 def get_context() -> tuple[DataBundle, SidebarSettings]:
@@ -39,18 +68,14 @@ def get_catalog(bundle: DataBundle, settings: SidebarSettings) -> pd.DataFrame:
 
 
 def format_timestamp(value: pd.Timestamp, timezone: str = "America/Sao_Paulo") -> str:
-    return pd.Timestamp(value).tz_convert(timezone).strftime("%d/%m/%Y %H:%M %z")
+    return pd.Timestamp(value).tz_convert(timezone).strftime("%d/%m/%Y %H:%M")
 
 
-def page_header(title: str, description: str = "") -> tuple[DataBundle, SidebarSettings]:
+def page_header(title: str) -> tuple[DataBundle, SidebarSettings]:
     bundle, settings = get_context()
-    st.title(title)
+    st.header(title)
+    st.caption(f"{TARGET_REGION}, RJ · {settings.unit} · {timezone_label(settings.timezone)}")
     audit = bundle.provenance.get("geographic_audit") or geographic_status(bundle)
-    academic = audit["status"] == "academic_series"
-    region_label = audit["source_region"] if academic else f"{TARGET_REGION}, RJ"
-    st.caption(f"{region_label} · {settings.unit} · America/Sao_Paulo")
-    if academic:
-        st.caption(audit["reason"])
     if audit["status"] == "incompatible":
         st.error("Base incompatível com o recorte municipal. " + audit["reason"])
         with st.expander("Evidência geográfica", expanded=True):
@@ -97,16 +122,17 @@ def forecast_picker(
     with right:
         index = st.selectbox(
             "Hora / execução", list(range(len(catalog))),
-            format_func=lambda index: f"{pd.Timestamp(catalog.iloc[index]['issued_at']).tz_convert(settings.timezone).strftime('%H:%M')} · {catalog.iloc[index]['model_name']}",
+            format_func=lambda index: f"{pd.Timestamp(catalog.iloc[index]['issued_at']).tz_convert(settings.timezone).strftime('%H:%M')} · {model_label(catalog.iloc[index]['model_name'])}",
             key=f"{key}_{settings.mode}_{settings.horizon_hours}_{settings.region}_{settings.unit}",
         )
     return materialize_forecast(bundle, str(catalog.iloc[index]["forecast_id"]))
 
 
 def forecast_details(forecast: Forecast, settings: SidebarSettings) -> None:
-    st.write(f"Modelo: {forecast.model_name} · Versão: {forecast.model_version}")
+    st.write(f"Modelo: {model_label(forecast.model_name)} · Versão: {forecast.model_version}")
     st.write(f"Região declarada: {forecast.region} · Unidade: {forecast.unit}")
-    st.write(f"Conjunto: {SPLIT_LABELS.get(forecast.dataset_split, forecast.dataset_split)}")
+    stage = SPLIT_LABELS.get(forecast.dataset_split, forecast.dataset_split)
+    st.write(f"Conjunto: {stage}")
     st.write(f"Emissão: {format_timestamp(forecast.issued_at, settings.timezone)}")
     if forecast.source_path:
         st.write(f"Arquivo: {forecast.source_path.name}")

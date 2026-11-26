@@ -5,6 +5,7 @@ from io import BytesIO
 import numpy as np
 import pandas as pd
 import pytest
+from streamlit.testing.v1 import AppTest
 
 from components.metrics_cards import format_number
 from components.tables import csv_bytes
@@ -29,3 +30,20 @@ def test_csv_keeps_original_precision_and_geographic_metadata():
     assert restored.region.iloc[0] == "Município do Rio de Janeiro"
     assert restored.unit.iloc[0] == "MWmed"
     pd.testing.assert_frame_equal(frame, original)
+
+
+
+def test_table_sends_brazilian_strings_and_preserves_csv_values():
+    def render():
+        import pandas as pd
+
+        from components.tables import csv_bytes, data_table
+
+        frame = pd.DataFrame({"load": [1094.3745069789813, None], "events": ["", None]})
+        original = csv_bytes(frame)
+        data_table(frame, labels={"load": "Carga", "events": "Eventos"})
+        assert csv_bytes(frame) == original
+
+    app = AppTest.from_function(render).run()
+    assert not app.exception
+    assert app.dataframe[0].value.to_dict("list") == {"load": ["1.094,37", "N/D"], "events": ["N/D", "N/D"]}

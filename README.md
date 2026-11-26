@@ -1,30 +1,38 @@
-# Painel-Interativo
+# Monitor de Previsão
 
-## TCC Energy Forecast — Rio de Janeiro
+*Painel Interativo de Previsão de Demanda Energética*
 
-Aplicação local do TCC de Ciência da Computação da Universidade Veiga de Almeida. O estudo tem o Rio de Janeiro como contexto. A aplicação usa a carga regional do **subsistema Sudeste/Centro-Oeste**, em **MWmed**, como referência acadêmica. As estações e o calendário do pacote fornecem o contexto local.
+Monitor de Previsão é o nome provisório da aplicação do TCC de Ciência da Computação da Universidade Veiga de Almeida. O estudo tem o Rio de Janeiro como contexto e o catálogo experimental usa a série ONS Sudeste/Centro-Oeste, em MWmed.
 
 O painel mantém fontes isoladas: **Base do grupo (CSV)** e **Arquivos dos modelos (JSON/CSV)**. A demonstração é uma ferramenta local/de testes que precisa ser habilitada explicitamente. Seus dados artificiais não representam medições, calendário oficial ou desempenho dos modelos do TCC.
 
 Repositório oficial [tccilda/painel-interativo](https://github.com/tccilda/painel-interativo).
 
+## Catálogo V1–V5
+
+A fonte padrão mostra a V5 e o histórico experimental dos modelos de 24h e 48h. As métricas, a série e o calendário já acompanham o projeto. A carga da entrega corresponde ao ONS Sudeste/Centro-Oeste. Prepare o detalhe V1/V5 e configure a hospedagem seguindo o [guia de integração das versões](docs/INTEGRACAO_VERSOES.md).
+
+A [matriz de requisitos](docs/MATRIZ_REQUISITOS.md) relaciona o pedido aos dados, código e testes. O [relatório de auditoria](docs/RELATORIO_AUDITORIA_FINAL.md) registra o que foi validado e as pendências científicas. A [revisão da monografia](docs/REVISAO_MONOGRAFIA.md) identifica as seções acadêmicas correspondentes.
+
 ## Situação da publicação
 
-A versão hospedada abre por padrão com a base acadêmica do grupo. O pacote contém as previsões de 24h e 48h, a carga, as estações meteorológicas e o calendário usado no trabalho. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
+O checkout abre o catálogo regional com métricas e série auditada. O Explorador abre com uma amostra de 12 emissões reais. A consulta integral V1/V5 usa as partições descritas no guia. O [guia de implantação](docs/DEPLOY_STREAMLIT.md) descreve os parâmetros e a verificação do acesso público.
 
-## Abrangência da base acadêmica
+## Proveniência do pacote legado
 
 A declaração municipal feita na integração anterior foi confrontada com uma fonte independente. **As 8.784 horas de carga de 2024 do pacote recebido coincidem com `val_carga` do subsistema Sudeste/Centro-Oeste**, com diferença máxima de 1,000444171950221×10⁻⁸ MWmed. O [conjunto oficial do ONS](https://dados.ons.org.br/dataset/balanco-energia-subsistema) é horário e regional; seu [dicionário](https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/balanco_energia_subsistema_ho/DicionarioDados_Balanco_Energia_Subsistema.json) define `val_carga` em MWmed. A comparação é vinculada aos hashes do ZIP e do arquivo oficial, com evidência reproduzível em `artifacts/revisao_comparacao_ons_2024.json`.
 
-O painel usa o pacote do grupo com o rótulo regional e preserva os valores originais de carga, previsões e métricas. A621 fica na Vila Militar (Rio de Janeiro) e A601, em Seropédica. As duas estações ficam disponíveis na análise acadêmica, com seleção individual ou média. [Catálogo oficial do INMET](https://apitempo.inmet.gov.br/estacoes/T)
+**Esse pacote está em quarentena na visão municipal.** Selecionar Base do grupo exibe o diagnóstico e impede gráficos, indicadores e exportações de carga ou resultados rotulados como municipais. O novo catálogo disponibiliza o mesmo ZIP no Explorador V1 com o rótulo regional. ZIP, configuração original, previsões e resultados recebidos permanecem intactos. Não há troca automática por dados sintéticos: a demonstração deve ser selecionada explicitamente.
 
-O calendário recebido não é uma referência municipal integralmente verificada. Há pontos facultativos de âmbito não informado e diferenças em relação às fontes municipais de 2025: 28/02 e 31/10 constam como dias úteis no CSV, enquanto o [Decreto Rio 55.705](https://doweb.rio.rj.gov.br/apifront/portal/edicoes/imprimir_materia/1136252/6942) e a [Prefeitura/CET-Rio](https://prefeitura.rio/cet-rio/faixas-reversiveis-da-cidade-serao-suspensas-nesta-sexta-feira-3/) registram pontos facultativos municipais nessas datas. O CSV não foi reescrito. A interpretação acadêmica deve considerar a abrangência do calendário. Ponto facultativo administrativo não equivale a paralisação de toda a economia.
+O [catálogo oficial do INMET](https://apitempo.inmet.gov.br/estacoes/T) também identifica A621 como Rio de Janeiro–Vila Militar e A601 como Seropédica–Ecologia Agrícola. A601 não entra na média municipal; estações sem localização verificada ficam indisponíveis na visão municipal. Dados sintéticos continuam permitidos e sinalizados como artificiais.
+
+O calendário recebido não é uma referência municipal integralmente verificada. Há pontos facultativos de âmbito não informado e diferenças em relação às fontes municipais de 2025: 28/02 e 31/10 constam como dias úteis no CSV, enquanto o [Decreto Rio 55.705](https://doweb.rio.rj.gov.br/apifront/portal/edicoes/imprimir_materia/1136252/6942) e a [Prefeitura/CET-Rio](https://prefeitura.rio/cet-rio/faixas-reversiveis-da-cidade-serao-suspensas-nesta-sexta-feira-3/) registram pontos facultativos municipais nessas datas. O CSV não foi reescrito. O grupo deve fornecer a carga municipal e revisar a abrangência do calendário antes do uso científico. Ponto facultativo administrativo não equivale a paralisação de toda a economia.
 
 Relatórios locais da revisão: `artifacts/revisao_auditoria_dados.md`, `artifacts/revisao_auditoria_avaliacao.md` e `artifacts/revisao_auditoria_visual.md`. Essa pasta de evidências de trabalho não integra a distribuição Git pública. A verificação numérica independente abrange 2024; ela não certifica os demais anos nem o protocolo de treino dos modelos.
 
 ## Base fornecida: painel.zip
 
-O inventário abaixo descreve os arquivos brutos recebidos, preservados para auditoria. O fuso informado pelo grupo é America/Sao_Paulo. O painel identifica a série de carga como regional.
+O inventário abaixo descreve os arquivos brutos recebidos, preservados para auditoria. Município e fuso foram inicialmente declarados pelo grupo; a evidência independente posterior contradiz o recorte municipal da carga de 2024 e impede o uso analítico desse pacote no painel municipal.
 
 - **24.840 horas** de carga, de 01/01/2024 a 31/10/2026, sem lacunas ou duplicidades na série recebida.
 - **11.618 emissões de cada horizonte**, com 278.832 alvos de 24h e 557.664 alvos de 48h. Emissões completas e valores observados/referências conferidos com a série histórica, respeitando a precisão de exportação.
@@ -32,11 +40,11 @@ O inventário abaixo descreve os arquivos brutos recebidos, preservados para aud
 - **1.035 dias de calendário informado**, com 21 pontos facultativos sem âmbito declarado. Esses âmbitos permanecem **não informados**; não se presume uma esfera administrativa.
 - Detalhes por emissão existem para **Teste 2025** e **Forecast 2026**. A **Validação 1S2025** e o **piloto só-carga** aparecem apenas nos resumos recebidos. Seus números são identificados como fornecidos, sem inventar curvas/episódios ou afirmar que foram recalculados. Cobertura e contagens de zeros não verificáveis ficam indisponíveis.
 
-Uma cópia íntegra está em `data/imported/painel_b10830eaae44.zip`, com SHA-256 e metadados em `data/imported/config.json`. Apenas esse pacote e sua configuração estão na distribuição pública. O ZIP é lido diretamente, sem extrair seus membros ou criar milhares de JSONs. Um catálogo leve seleciona data, hora e modelo, materializando apenas a emissão escolhida. O lote é mantido em memória como somente leitura e recarregado quando a assinatura dos arquivos muda.
+Uma cópia íntegra está em `data/imported/painel_b10830eaae44.zip`, com SHA-256 e metadados em `data/imported/config.json`. Essa pasta é ignorada pelo Git. O ZIP é lido diretamente, sem extrair seus membros ou criar milhares de JSONs. Um catálogo leve seleciona data, hora e modelo, materializando apenas a emissão escolhida. O lote é mantido em memória como somente leitura e recarregado quando a assinatura dos arquivos muda.
 
 Os relatórios estão em `artifacts/auditoria_serie.md` e `artifacts/auditoria_previsoes.md`. O adaptador verifica hash, formatos, horizontes, partições e correspondência com a carga; os erros exportados não substituem os cálculos do painel. O resíduo do painel continua **observado − previsto**, mesmo que algum resumo original use o sinal oposto.
 
-**Base do grupo (CSV)** é a opção inicial quando a configuração está disponível. O carregador confere a integridade do ZIP e o formato das séries.
+O catálogo regional V1–V5 é a fonte inicial. O leitor municipal oferece **Base do grupo (CSV)** quando há configuração local e aplica o bloqueio geográfico a esse pacote. Uma base para o leitor municipal precisa representar a carga do município e documentar fonte, unidade e fuso. Hashes divergentes são recusados.
 
 ## Instalação e execução
 
@@ -84,13 +92,15 @@ Carregamentos padrão e catálogo usam `st.cache_data` com assinatura dos arquiv
 
 ## As três abas
 
-1. **Explorador de Previsões:** conjunto, modelo 24h/48h, data/hora de emissão e contexto de 48, 72, 120 ou 168h em duas linhas. Quatro indicadores curtos, distribuição compacta de calendário e gráfico Histórico × Previsão com quatro séries. Valores horários e metadados ficam recolhidos; ausência é exibida como N/D.
-2. **Desempenho e Erros:** tabela compacta com os quatro segmentos de modelos e duas referências; amostra/cobertura em detalhes. Curva selecionável de MAE/RMSE/MAPE por passo; filtros de mês, dia da semana, calendário e temperatura; episódios ordenados por erro com exportação. Conjuntos são separados. Sem pareamento verificável, os resultados são identificados como descritivos, sem comparação entre horizontes.
-3. **Sazonalidade, Clima e Calendário:** perfis diário/semanal e evolução mensal/anual de 2024–2026; clima com intervalo próprio, dispersão WebGL mantendo todos os pares e agregação temporal diária/semanal. A opção horária limita a série temporal aos últimos 168h e informa esse recorte. Calendário compara as categorias informadas; não extrapola períodos incompletos.
+1. **Explorador de Previsões.** A V5 abre por padrão. Selecione hipótese, conjunto, horizonte, mês, estimador e emissão. Compare MAE e MAPE da emissão com as referências nos mesmos alvos válidos e consulte o resumo do recorte completo. A prévia pública traz 12 emissões reais, uma por combinação de hipótese, conjunto e horizonte. O gráfico combina histórico, previsão, observado e referências. A tabela recolhível reúne valores horários, resumo de calendário e exportação. A V1 aparece quando o ZIP legado está configurado.
+2. **Avaliação de Desempenho e Erros.** Consulte as métricas fornecidas V1–V5 por versão, hipótese, etapa, horizonte e bloco. Veja os denominadores de MAE/RMSE e MAPE, a curva por passo, os dois horizontes com referências e o recorte pareado V4 × V5. Os episódios V1/V5 usam um mês de emissão de cada vez, com filtros no alvo por dia da semana, calendário e temperatura.
+3. **Sazonalidade, Clima e Calendário.** Compare perfis horários e semanais, médias mensais e anuais, dispersão e séries de carga e temperatura. Filtre as categorias de calendário por tipo e âmbito. As contagens por categoria usam horas únicas, agrupam âmbitos simultâneos e destacam grupos com até 120 h de observação.
 
-A lateral contém fonte e estação disponível, sem repetir descrições acadêmicas. O município é fixo. Se houver mais de uma série física/unidade, a seleção identifica séries distintas, sem conversão ou simples mudança de rótulo. Explicações ficam em tooltips e **Detalhes metodológicos**. Números são exibidos no padrão brasileiro, enquanto CSVs mantêm a precisão original.
+A navegação fica no topo. O seletor de fonte só aparece quando a instalação oferece opções adicionais. Explicações ficam nas ajudas dos controles e em **Detalhes metodológicos**. As tabelas exibem números em formato brasileiro e mostram N/D em células vazias. A ordenação pela grade usa o texto exibido. As exportações preservam a precisão e os identificadores da origem.
 
 ## Arquitetura
+
+O nome e o subtítulo do aplicativo são definidos por `APP_NAME` e `APP_SUBTITLE` em `streamlit_app.py`. As variáveis `ENERGY_FORECAST_*` e o diretório temporário `energy-forecast-versions` conservam seus nomes para que configurações instaladas e caches existentes continuem funcionando.
 
 ```text
 streamlit_app.py             # Configuração e navegação st.Page/st.navigation
@@ -122,7 +132,7 @@ data/predictions/           # JSONs dos modelos reais
 data/historical/            # Carga observada
 data/weather/               # Meteorologia observada
 data/calendar/              # Calendário verificado do município
-data/imported/              # ZIP acadêmico e configuração da fonte
+data/imported/              # Cópia privada do ZIP e configuração explícita
 tests/
 .streamlit/config.toml
 requirements.txt

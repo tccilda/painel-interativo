@@ -41,7 +41,7 @@ bundle = load_data({mode!r})
 region = bundle.forecasts[0].region if bundle.forecasts else (bundle.observations["region"].iloc[0] if not bundle.observations.empty else None)
 unit = bundle.forecasts[0].unit if bundle.forecasts else (bundle.observations["unit"].iloc[0] if not bundle.observations.empty else "MWmed")
 st.session_state["data_bundle"] = bundle
-st.session_state["app_settings"] = SidebarSettings({mode!r}, {horizon}, region, "Município do Rio de Janeiro", unit=unit)
+st.session_state["app_settings"] = SidebarSettings({mode!r}, {horizon}, region, unit=unit)
 st.session_state["selected_horizon"] = {horizon}
 render()
 '''
@@ -52,14 +52,15 @@ def test_entrypoint_horizon_and_source_switch(monkeypatch):
     monkeypatch.delenv("ENERGY_FORECAST_ALLOW_DEMO", raising=False)
     app = AppTest.from_file(ROOT / "streamlit_app.py").run(timeout=60)
     assert not app.exception
-    assert app.title[0].value == "Explorador de Previsões"
-    assert app.selectbox(key="source_mode").value == "Arquivos dos modelos"
+    assert app.title[0].value == "Monitor de Previsão"
+    assert any(item.value == "*Painel Interativo de Previsão de Demanda Energética*" for item in app.markdown)
+    assert app.header[0].value == "Explorador de Previsões"
+    assert all(widget.label != "Fonte" for widget in app.selectbox)
     assert not any("Modo demonstração" in item.value for item in app.warning)
     assert not app.metric
     assert not app.dataframe
     assert not app.get("plotly_chart")
     assert any("Nenhuma previsão" in item.value for item in app.info)
-    assert "Demonstração" not in app.selectbox(key="source_mode").options
     monkeypatch.setenv("ENERGY_FORECAST_ALLOW_DEMO", "true")
     app.run(timeout=60)
     app.selectbox(key="source_mode").set_value("Demonstração").run(timeout=60)
@@ -86,8 +87,11 @@ st.session_state["selected_source_result"] = select_data_mode(has_imported={has_
     page.session_state["source_mode"] = "Demonstração"
     page.run(timeout=60)
     assert not page.exception
-    assert page.selectbox(key="source_mode").value == expected
-    assert "Demonstração" not in page.selectbox(key="source_mode").options
+    if has_imported:
+        assert page.selectbox(key="source_mode").value == expected
+        assert "Demonstração" not in page.selectbox(key="source_mode").options
+    else:
+        assert not page.selectbox
     assert page.session_state["selected_source_result"] == ("provided" if has_imported else "real")
 
 
@@ -104,9 +108,8 @@ st.session_state["selected_source_result"] = select_data_mode(allow_demo=allow_d
     assert page.session_state["selected_source_result"] == "demo"
     page.checkbox[0].set_value(False).run(timeout=60)
     assert not page.exception
-    assert page.selectbox(key="source_mode").value == "Arquivos dos modelos"
+    assert not page.selectbox
     assert page.session_state["selected_source_result"] == "real"
-    assert "Demonstração" not in page.selectbox(key="source_mode").options
 
 
 @pytest.mark.parametrize("horizon", [24, 48])
@@ -122,18 +125,21 @@ def test_explorer_has_full_horizon_and_no_invented_error(horizon):
     assert not page.exception
     _assert_peak_matches_hourly_table(page)
     table = page.dataframe[0].value
-    target = pd.to_datetime(table["Hora prevista"], format="%d/%m/%Y %H:%M %z", utc=True)
+    target = pd.to_datetime(table["Hora prevista"], format="%d/%m/%Y %H:%M").dt.tz_localize("America/Sao_Paulo").dt.tz_convert("UTC")
     actual = page.session_state["data_bundle"].observations.set_index("timestamp")["observed_load"].reindex(target)
     assert actual.notna().all()
-    expected_mae = abs(actual.to_numpy() - table["Previsto (MWmed)"].to_numpy()).mean()
+    predicted = next(trace["y"] for trace in plot_specs(page)[0]["data"] if trace["name"] == "Previsto")
+    expected_mae = abs(actual.to_numpy() - predicted).mean()
     assert next(metric for metric in page.metric if metric.label == "MAE da emissão").value == f"{format_number(expected_mae, 2)} MWmed"
 
 
 def _assert_peak_matches_hourly_table(page):
     table = page.dataframe[0].value
-    peak_index = table["Previsto (MWmed)"].idxmax()
-    assert next(metric for metric in page.metric if metric.label == "Pico previsto").value == f"{format_number(table.loc[peak_index, 'Previsto (MWmed)'])} MWmed"
-    peak_time = pd.to_datetime(table.loc[peak_index, "Hora prevista"], format="%d/%m/%Y %H:%M %z")
+    predicted = pd.Series(next(trace["y"] for trace in plot_specs(page)[0]["data"] if trace["name"] == "Previsto"))
+    peak_index = predicted.idxmax()
+    assert next(metric for metric in page.metric if metric.label == "Pico previsto").value == f"{format_number(predicted[peak_index])} MWmed"
+    assert table.loc[peak_index, "Previsto (MWmed)"] == format_number(predicted[peak_index], 2)
+    peak_time = pd.to_datetime(table.loc[peak_index, "Hora prevista"], format="%d/%m/%Y %H:%M")
     assert next(metric for metric in page.metric if metric.label == "Horário do pico").value == peak_time.strftime("%H:%M · %d/%m")
 
 
@@ -149,7 +155,7 @@ def test_performance_compares_splits_segments_and_references():
     assert sum(summary["Modelo / janela"].str.startswith("Modelo")) == 4
     assert any(summary["Modelo / janela"].str.startswith("Persistência"))
     assert any(summary["Modelo / janela"].str.startswith("Sazonal semanal"))
-    assert summary[["MAE (MWmed)", "RMSE (MWmed)", "MAPE (%)"]].notna().all().all()
+    assert summary[["MAE (MWmed)", "RMSE (MWmed)", "MAPE (%)"]].ne("N/D").all().all()
     assert summary["Origem"].eq("Sintético").all()
     assert any("Modo demonstração" in item.value for item in page.warning)
     assert page.get("plotly_chart")
@@ -168,7 +174,7 @@ def test_seasonality_includes_weather_calendar_and_three_years():
     page = render_page("sazonalidade")
     assert not page.exception
     assert set(page.multiselect[0].value) == {2024, 2025, 2026}
-    assert len(page.get("plotly_chart")) == 7
+    assert len(page.get("plotly_chart")) == 8
     assert not page.error
 
 
@@ -221,9 +227,9 @@ def test_model_files_enable_performance_without_weather_or_calendar(isolate_real
     page = render_page("desempenho", mode="real")
     assert not page.exception
     summary = page.dataframe[0].value
-    assert summary.loc[summary["Modelo / janela"].str.startswith("Modelo 24"), "MAE (MWmed)"].notna().all()
+    assert summary.loc[summary["Modelo / janela"].str.startswith("Modelo 24"), "MAE (MWmed)"].ne("N/D").all()
     coverage = page.dataframe[1].value
-    assert coverage["Pares"].min() == 24
+    assert coverage["Pares"].eq("24").all()
     assert set(coverage["Método"]) == {"Modelo", "Persistência", "Sazonal semanal"}
     assert not any("Modo demonstração" in item.value for item in page.warning)
 

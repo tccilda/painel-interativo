@@ -5,6 +5,7 @@ e os resumos abaixo simulam os contratos de integração, não resultados reais.
 """
 
 from dataclasses import replace
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -95,7 +96,7 @@ st.session_state["forecast_catalog"] = forecast_catalog(bundle)
 st.session_state["original_observations"] = bundle.observations.copy(deep=True)
 st.session_state["original_prediction_rows"] = bundle.prediction_rows.copy(deep=True)
 st.session_state["original_reported_metrics"] = bundle.reported_metrics.copy(deep=True)
-st.session_state["app_settings"] = SidebarSettings("provided", {horizon}, REGION, REGION, unit="MWmed")
+st.session_state["app_settings"] = SidebarSettings("provided", {horizon}, REGION, unit="MWmed")
 if "selected_horizon" not in st.session_state:
     st.session_state["selected_horizon"] = {horizon}
 render()
@@ -130,14 +131,14 @@ def test_provided_performance_keeps_summary_only_validation_separate_from_test_c
     assert page.get("plotly_chart")
     worst = [table.value for table in page.dataframe if "Erro absoluto (MWmed)" in table.value.columns]
     assert len(worst) == 1 and 0 < len(worst[0]) <= 30
-    assert worst[0]["Real (MWmed)"].notna().all()
+    assert worst[0]["Real (MWmed)"].ne("N/D").all()
 
     page.selectbox(key="performance_split_provided").set_value("validation_2025").run(timeout=60)
     assert not page.exception
     assert not page.error
     validation = page.dataframe[0].value
     assert validation["Origem"].eq("Resumo").all()
-    assert validation["MAE (MWmed)"].eq(10.).all()
+    assert validation["MAE (MWmed)"].eq("10,00").all()
     assert any("pareamento ponto a ponto não foi verificado" in item.value for item in page.warning)
     assert not page.get("plotly_chart")
     assert any("Sem previsões individuais" in item.value for item in page.info)
@@ -149,7 +150,7 @@ def test_provided_performance_keeps_summary_only_validation_separate_from_test_c
     assert page.get("plotly_chart")
     worst = [table.value for table in page.dataframe if "Erro absoluto (MWmed)" in table.value.columns]
     assert len(worst) == 1 and 0 < len(worst[0]) <= 30
-    assert worst[0]["Real (MWmed)"].notna().all()
+    assert worst[0]["Real (MWmed)"].ne("N/D").all()
     assert page.get("download_button")
 
 
@@ -159,9 +160,12 @@ def test_provided_seasonality_displays_weather_and_calendar_without_demo_banner(
     assert not page.error
     assert not any("Modo demonstração" in item.value for item in page.warning)
     assert set(page.multiselect[0].value) == {2024, 2025, 2026}
-    assert len(page.get("plotly_chart")) == 7
-    import json
-    scatter = next(json.loads(chart.proto.spec) for chart in page.get("plotly_chart") if json.loads(chart.proto.spec)["data"][0]["type"] == "scattergl")
+    charts = [json.loads(chart.proto.spec) for chart in page.get("plotly_chart")]
+    assert len(charts) == 8
+    annual = next(spec for spec in charts if spec["layout"].get("title", {}).get("text")
+                  == "Média anual no período selecionado")
+    assert annual["data"][0]["x"] == ["2024", "2025", "2026"]
+    scatter = next(spec for spec in charts if spec["data"][0]["type"] == "scattergl")
     assert len(scatter["data"][0]["customdata"]) > 0
 
 

@@ -6,6 +6,8 @@
 *.yml text eol=lf
 *.yaml text eol=lf
 *.csv -text
+# Os artefatos entregues são preservados byte a byte para conferir os hashes.
+data/versions/** -text
 *.zip -text
 *.jpg -text
 *.png -text

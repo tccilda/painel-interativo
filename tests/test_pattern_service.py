@@ -5,7 +5,7 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from services.pattern_service import aggregate_load_temperature, calendar_profile, daily_profile, join_weather, seasonal_profiles, weekly_profile
+from services.pattern_service import aggregate_load_temperature, calendar_profile, daily_profile, join_weather, monthly_profile, weekly_profile
 
 
 def observations(timestamps, values, region="A"):
@@ -38,21 +38,20 @@ def test_weekly_profile_crosses_utc_day_and_orders_monday_before_sunday():
 
 def test_profiles_keep_years_and_local_months_distinct():
     frame = observations(["2024-02-01T02:00Z", "2025-01-01T03:00Z", "2026-01-01T03:00Z"], [10., 20., 30.])
-    result = seasonal_profiles(frame)
-    assert set(result) == {"daily", "weekly", "monthly"}
-    monthly = result["monthly"]
+    monthly = monthly_profile(frame)
     assert monthly["month"].tolist() == ["2024-01", "2025-01", "2026-01"]
     assert monthly["year"].tolist() == [2024, 2025, 2026]
     assert monthly["mean"].tolist() == [10., 20., 30.]
 
 
 def test_empty_profiles_preserve_schema_and_never_report_zero_mean():
-    result = seasonal_profiles(pd.DataFrame())
-    assert len(result["daily"]) == 24
-    assert result["daily"]["mean"].isna().all()
-    assert result["daily"]["count"].eq(0).all()
-    assert result["weekly"].empty
-    assert result["monthly"].empty
+    empty = pd.DataFrame()
+    daily = daily_profile(empty)
+    assert len(daily) == 24
+    assert daily["mean"].isna().all()
+    assert daily["count"].eq(0).all()
+    assert weekly_profile(empty).empty
+    assert monthly_profile(empty).empty
 
 
 def test_profile_mean_handles_large_finite_values():

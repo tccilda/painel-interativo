@@ -23,6 +23,8 @@ Thumbs.db
 build/
 dist/
 artifacts/
+data/versions/detail/
+data/versions/tmp*/
 # Dados sintéticos são fixtures locais/CI; não entram na versão pública real.
 data/demo/*
 !data/demo/.gitkeep
@@ -36,5 +38,3 @@ data/calendar/*
 !data/calendar/.gitkeep
 data/imported/*
 !data/imported/.gitkeep
-!data/imported/config.json
-!data/imported/painel_b10830eaae44.zip

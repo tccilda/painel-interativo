@@ -15,7 +15,6 @@ from services.forecast_service import (
     export_forecast_csv,
     forecast_summary,
     prepare_evaluation,
-    select_forecasts,
 )
 
 
@@ -48,37 +47,14 @@ def observation_frame(forecast: Forecast) -> pd.DataFrame:
     )
 
 
-def test_select_filters_horizon_and_region_without_truncation(forecast):
-    longer = replace(forecast, horizon_hours=48)
-    other_region = replace(forecast, region="Região B")
-    older = replace(forecast, issued_at=pd.Timestamp("2024-12-31T00:00:00Z"))
-    actual = select_forecasts([older, longer, other_region, forecast], 24, "Região A")
-    assert len(actual) == 2
-    assert actual[0] is forecast
-    assert actual[1] is older
-
-
-def test_select_breaks_issuance_ties_deterministically(forecast):
-    second = replace(forecast, model_name="Segundo")
-    first = replace(forecast, model_name="Primeiro")
-    assert select_forecasts([second, first], 24)[0] is first
-
-
-def test_select_and_evaluation_keep_mw_and_mwmed_separate(forecast):
+def test_evaluation_keeps_mw_and_mwmed_separate(forecast):
     mwmed = replace(forecast, unit="MWmed")
-    assert select_forecasts([forecast, mwmed], 24, unit="MWmed") == [mwmed]
     observations = observation_frame(forecast)
     assert prepare_evaluation(mwmed, observations).empty
     observations["unit"] = "MWmed"
     result = prepare_evaluation(mwmed, observations)
     assert len(result) == 24
     assert result["unit"].eq("MWmed").all()
-
-
-@pytest.mark.parametrize("horizon", [12, 36, 72, True, 24.0, "24"])
-def test_select_rejects_invalid_horizon(horizon):
-    with pytest.raises(ValueError, match="horizonte"):
-        select_forecasts([], horizon)
 
 
 def test_summary_reports_values_and_peak_timestamp(forecast):

@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "source": {
+    "previsoes_24h_v5.csv": "528d8a52273d526914897204d3762a11ce40c65878accbd9826188166387300b",
+    "previsoes_48h_v5.csv": "53c3354c042621e02fb8415e8d568a4d4c1d90d86b53f41f24525e7ff43354c8"
+  },
+  "coverage": "manifest_samples",
+  "partitions": [
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-01.parquet",
+      "sha256": "63979b378550131866d5ceaef961b2e07c5f6b0ff5ba37d69104d82d985cea9f",
+      "bytes": 9490,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 24
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-07.parquet",
+      "sha256": "5feaaa3a4f0d07d0e9f9e9a8f9ae2d929787483d42c3be6a94381748f16b3dbc",
+      "bytes": 9406,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-07",
+      "rows": 24
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-01.parquet",
+      "sha256": "892730e52680042428642971b9ea95cf5c2de85d44775305c5eaafbb9231c6b6",
+      "bytes": 9490,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 24
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-01.parquet",
+      "sha256": "46b3782af349b3416c03b2806f78d3efe96d451454b81670d33f5f73f386a9e2",
+      "bytes": 9490,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 24
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__teste_2025__2025-07.parquet",
+      "sha256": "dfbf2ddc2b98506f2dfdc822c175c5519c38b609fa6f4ffc392158ffc4168cd3",
+      "bytes": 9406,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-07",
+      "rows": 24
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-01.parquet",
+      "sha256": "544945891755bc4c670f9724de230ce6bf11686912982b1b093e4e735d1b6060",
+      "bytes": 9490,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 24
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-01.parquet",
+      "sha256": "3c4660842c14f7418e42a14940918c286e11050c35aed19482d87f6a4954b3d0",
+      "bytes": 10204,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 48
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-07.parquet",
+      "sha256": "f2ad023c4bfaac82374e517e3493768c5dd838a203395c8f8cf9f7eb942c0252",
+      "bytes": 10110,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-07",
+      "rows": 48
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-01.parquet",
+      "sha256": "f4e370f5e9a44629c40e7a39e56609ab0db8f7c36d2795dbdb4839198c80bf3c",
+      "bytes": 10214,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 48
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-01.parquet",
+      "sha256": "289362ce4133dd88bc72234a731dbe471728aadc8905c1b884301faa31c903dd",
+      "bytes": 10204,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 48
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-07.parquet",
+      "sha256": "a41a8af1538c3183e08f6b22827bf3e60757873cc5e1403bfb3f46f63f0dcf08",
+      "bytes": 10109,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-07",
+      "rows": 48
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-01.parquet",
+      "sha256": "9e0e69a39c32ebcd0f986be165ca53e4f4e4068ebc2fe1dd40bb34039c2ba391",
+      "bytes": 10214,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 48
+    }
+  ]
+}

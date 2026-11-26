@@ -14,6 +14,12 @@ from services.forecast_catalog import forecast_catalog
 from services.geography_service import municipal_bundle
 
 
+def has_model_files() -> bool:
+    directory = data_loader.DATA_DIR
+    patterns = (("predictions", "*.json"), ("historical", "*.csv"))
+    return any(path.is_file() for folder, pattern in patterns for path in (directory / folder).glob(pattern))
+
+
 def imported_config_path() -> Path:
     return data_loader.DATA_DIR / "imported" / "config.json"
 
