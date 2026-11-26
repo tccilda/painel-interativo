@@ -33,6 +33,7 @@ def _render_legacy(context=None, catalog=None) -> None:
         split = st.selectbox(
             "Conjunto", splits or ["unspecified"], format_func=lambda value: "Retrospectiva 2026" if settings.mode == "v1" and value == "forecast_2026" else SPLIT_LABELS[value],
             disabled=not splits, key=f"explorer_split_{settings.mode}",
+            placeholder="Selecione uma opção",
         )
     subset = candidates.loc[candidates["dataset_split"] == split]
     available_horizons = [value for value in (24, 48) if value in set(subset["horizon_hours"])]
@@ -43,11 +44,11 @@ def _render_legacy(context=None, catalog=None) -> None:
         )
     settings = replace(settings, horizon_hours=horizon)
     with controls[2]:
-        history_hours = st.selectbox("Histórico anterior", [48, 72, 120, 168], index=1, format_func=lambda value: f"{value} h")
+        history_hours = st.selectbox("Histórico anterior", [48, 72, 120, 168], index=1, format_func=lambda value: f"{value} h", placeholder="Selecione uma opção")
     available = subset.loc[subset["horizon_hours"] == horizon]
     models = sorted(set(zip(available["model_name"], available["model_version"])))
     if len(models) > 1:
-        model = st.selectbox("Modelo / versão", models, format_func=lambda value: f"{value[0]} · {value[1]}")
+        model = st.selectbox("Modelo / versão", models, format_func=lambda value: f"{value[0]} · {value[1]}", placeholder="Selecione uma opção")
         available = available.loc[(available["model_name"] == model[0]) & (available["model_version"] == model[1])]
     forecast = forecast_picker(bundle, settings, "explorer_run", candidates=available)
     if forecast is None:

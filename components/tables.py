@@ -24,6 +24,7 @@ def data_table(
             selection = st.selectbox(
                 "Ordenação numérica", options, format_func=choices.__getitem__,
                 help="Ordena pelos valores originais. Ausências ficam no fim. O cabeçalho da grade ordena o texto exibido.",
+                placeholder="Selecione uma opção",
             )
         if selection is not None:
             column, ascending = selection

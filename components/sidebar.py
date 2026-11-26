@@ -42,6 +42,7 @@ def select_data_mode(
     label = st.sidebar.selectbox(
         "Fonte", options, key="source_mode",
         help="As fontes são isoladas. Dados ausentes ou incompatíveis não são substituídos por simulação.",
+        placeholder="Selecione uma opção",
     )
     return labels[label]
 
@@ -54,7 +55,7 @@ def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings
     region = options[0] if options else None
     # Séries distintas podem ter metadados próprios, mas não mudam o alvo territorial.
     if len(options) > 1:
-        region = st.sidebar.selectbox("Série municipal", options, key=f"region_{bundle.mode}")
+        region = st.sidebar.selectbox("Série municipal", options, key=f"region_{bundle.mode}", placeholder="Selecione uma opção")
     units = set(catalog.loc[catalog["region"] == region, "unit"].unique()) if not catalog.empty else set()
     if region is not None and not bundle.observations.empty:
         units.update(bundle.observations.loc[bundle.observations["region"] == region, "unit"].unique())
@@ -65,6 +66,7 @@ def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings
             "Série / unidade", unit_options, key=f"unit_{bundle.mode}",
             format_func=lambda value: f"Série em {value}",
             help="Seleciona séries físicas distintas. Não converte MW em MWmed nem altera rótulos.",
+            placeholder="Selecione uma opção",
         )
     stations = []
     if region is not None and not bundle.weather.empty:
@@ -74,6 +76,7 @@ def render_sidebar(bundle: DataBundle, catalog: pd.DataFrame) -> SidebarSettings
         selected = st.sidebar.selectbox(
             "Estação", ["Média disponível"] + stations, key=f"station_{bundle.mode}_{region}",
             help="Média das estações disponíveis em cada instante. Estações externas ou sem localização verificada não entram na visão municipal.",
+            placeholder="Selecione uma opção",
         )
         station = None if selected == "Média disponível" else selected
     return SidebarSettings(bundle.mode, 24, region, unit=unit, station=station)

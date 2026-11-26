@@ -106,7 +106,7 @@ def _render_v5(*, legacy_available):
     with columns[2]:
         horizon = st.radio("Horizonte", [24, 48], horizontal=True, format_func=lambda hours: f"{hours} h", key="v5_explorer_horizon")
     with columns[3]:
-        history_hours = st.selectbox("Histórico anterior", [72, 48, 120, 168], format_func=lambda v: f"{v} h", key="v5_explorer_history")
+        history_hours = st.selectbox("Histórico anterior", [72, 48, 120, 168], format_func=lambda v: f"{v} h", key="v5_explorer_history", placeholder="Selecione uma opção")
     entries = {e["month"]: e for e in index if (e["scenario"], e["stage"], e["horizon"]) == (scenario, stage, horizon)}
     if preview:
         st.caption(preview_coverage(entries.values()))

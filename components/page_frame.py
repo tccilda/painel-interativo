@@ -107,7 +107,7 @@ def available_choice(label, options, *, key, format_func=str, default=None):
         st.caption(f"{label} · {format_func(options[0])}")
         return options[0]
     index = options.index(default) if default in options else 0
-    return st.selectbox(label, options, key=key, index=index, format_func=format_func)
+    return st.selectbox(label, options, key=key, index=index, format_func=format_func, placeholder="Selecione uma opção")
 
 
 def forecast_picker(
