@@ -4,127 +4,899 @@
     "previsoes_24h_v5.csv": "528d8a52273d526914897204d3762a11ce40c65878accbd9826188166387300b",
     "previsoes_48h_v5.csv": "53c3354c042621e02fb8415e8d568a4d4c1d90d86b53f41f24525e7ff43354c8"
   },
-  "coverage": "manifest_samples",
+  "coverage": "monthly_temporal_samples",
   "partitions": [
     {
-      "file": "24__hipotese_UTC__validacao_1s2025__2025-01.parquet",
-      "sha256": "63979b378550131866d5ceaef961b2e07c5f6b0ff5ba37d69104d82d985cea9f",
-      "bytes": 9490,
-      "horizon": 24,
-      "scenario": "hipotese_UTC",
-      "stage": "validacao_1s2025",
-      "month": "2025-01",
-      "rows": 24
-    },
-    {
-      "file": "24__hipotese_UTC__teste_2025__2025-07.parquet",
-      "sha256": "5feaaa3a4f0d07d0e9f9e9a8f9ae2d929787483d42c3be6a94381748f16b3dbc",
-      "bytes": 9406,
-      "horizon": 24,
-      "scenario": "hipotese_UTC",
-      "stage": "teste_2025",
-      "month": "2025-07",
-      "rows": 24
-    },
-    {
-      "file": "24__hipotese_UTC__retrospectiva_2026__2026-01.parquet",
-      "sha256": "892730e52680042428642971b9ea95cf5c2de85d44775305c5eaafbb9231c6b6",
-      "bytes": 9490,
-      "horizon": 24,
-      "scenario": "hipotese_UTC",
-      "stage": "retrospectiva_2026",
-      "month": "2026-01",
-      "rows": 24
-    },
-    {
-      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-01.parquet",
-      "sha256": "46b3782af349b3416c03b2806f78d3efe96d451454b81670d33f5f73f386a9e2",
-      "bytes": 9490,
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-01.parquet",
+      "sha256": "da8f3dab95e3a10efeb7b79af3348f1a12e6ce746c4686c2efb776110929f840",
+      "bytes": 16020,
       "horizon": 24,
       "scenario": "hipotese_Sao_Paulo",
-      "stage": "validacao_1s2025",
-      "month": "2025-01",
-      "rows": 24
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 408,
+      "reference_origin": "2026-01-01T03:00:00Z"
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-02.parquet",
+      "sha256": "bffdfc7193be21c209c2be1f4ccf6acd330f20198bd38921389754d19b6024cc",
+      "bytes": 14971,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-02",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-03.parquet",
+      "sha256": "9ccb5f72e987c410c5cae4d1012272391debde14971c462d14d4cd7ef0edfb6d",
+      "bytes": 15305,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-03",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-04.parquet",
+      "sha256": "6e824827264e439944af404148774dbdc0a248b669e2cdec7d6d53cb62398b45",
+      "bytes": 15758,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-04",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-05.parquet",
+      "sha256": "524d85afb6b0d83b4f7e44c62233ee8b12324384663c32e64ed1f1e2c9482d81",
+      "bytes": 15317,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-05",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-06.parquet",
+      "sha256": "62e0b9e1d045e1986d52efea41928e97d1721af35d6ea53110ea9bb88a9a5b26",
+      "bytes": 15632,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-06",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-07.parquet",
+      "sha256": "af7f0380dc3054411f8a049f32f713d1e9ae2d075b315c9adb1ca884e36d97b9",
+      "bytes": 15282,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-07",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-08.parquet",
+      "sha256": "255b2b8943be1c0d41a675d61688e75f01428bfdfd4c49993857e0c36ad27fdb",
+      "bytes": 15296,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-08",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-09.parquet",
+      "sha256": "e013107dfacc51726415e02f50754b62924df114b8bae264df3de691bdd93f8e",
+      "bytes": 15608,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-09",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-10.parquet",
+      "sha256": "b498826db54b9154c5d88de6dd86c733b05eb4e6da45f212bf73682d5ebd34ec",
+      "bytes": 15655,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-10",
+      "rows": 384
     },
     {
       "file": "24__hipotese_Sao_Paulo__teste_2025__2025-07.parquet",
-      "sha256": "dfbf2ddc2b98506f2dfdc822c175c5519c38b609fa6f4ffc392158ffc4168cd3",
-      "bytes": 9406,
+      "sha256": "1d72d95360727326cbf0e049372ca9085faa264989c3b8f56f25df7fe84d7e64",
+      "bytes": 16160,
       "horizon": 24,
       "scenario": "hipotese_Sao_Paulo",
       "stage": "teste_2025",
       "month": "2025-07",
-      "rows": 24
+      "rows": 408,
+      "reference_origin": "2025-07-01T03:00:00Z"
     },
     {
-      "file": "24__hipotese_Sao_Paulo__retrospectiva_2026__2026-01.parquet",
-      "sha256": "544945891755bc4c670f9724de230ce6bf11686912982b1b093e4e735d1b6060",
-      "bytes": 9490,
+      "file": "24__hipotese_Sao_Paulo__teste_2025__2025-08.parquet",
+      "sha256": "702fc42e75a1276035873257f2f9fb5c05ecd1824ea19468d5aa55b755c75c57",
+      "bytes": 15272,
       "horizon": 24,
       "scenario": "hipotese_Sao_Paulo",
-      "stage": "retrospectiva_2026",
-      "month": "2026-01",
-      "rows": 24
-    },
-    {
-      "file": "48__hipotese_UTC__validacao_1s2025__2025-01.parquet",
-      "sha256": "3c4660842c14f7418e42a14940918c286e11050c35aed19482d87f6a4954b3d0",
-      "bytes": 10204,
-      "horizon": 48,
-      "scenario": "hipotese_UTC",
-      "stage": "validacao_1s2025",
-      "month": "2025-01",
-      "rows": 48
-    },
-    {
-      "file": "48__hipotese_UTC__teste_2025__2025-07.parquet",
-      "sha256": "f2ad023c4bfaac82374e517e3493768c5dd838a203395c8f8cf9f7eb942c0252",
-      "bytes": 10110,
-      "horizon": 48,
-      "scenario": "hipotese_UTC",
       "stage": "teste_2025",
-      "month": "2025-07",
-      "rows": 48
+      "month": "2025-08",
+      "rows": 384
     },
     {
-      "file": "48__hipotese_UTC__retrospectiva_2026__2026-01.parquet",
-      "sha256": "f4e370f5e9a44629c40e7a39e56609ab0db8f7c36d2795dbdb4839198c80bf3c",
-      "bytes": 10214,
-      "horizon": 48,
-      "scenario": "hipotese_UTC",
-      "stage": "retrospectiva_2026",
-      "month": "2026-01",
-      "rows": 48
+      "file": "24__hipotese_Sao_Paulo__teste_2025__2025-09.parquet",
+      "sha256": "fed8c338643c19d71f57af9d752dc9e6f73102bffdc0ae60c5c4f043520e5086",
+      "bytes": 15515,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-09",
+      "rows": 384
     },
     {
-      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-01.parquet",
-      "sha256": "289362ce4133dd88bc72234a731dbe471728aadc8905c1b884301faa31c903dd",
-      "bytes": 10204,
-      "horizon": 48,
+      "file": "24__hipotese_Sao_Paulo__teste_2025__2025-10.parquet",
+      "sha256": "b99de92e0802e71e15d85b70312c171e5c81098c80bebbb0b613821172d55e34",
+      "bytes": 15375,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-10",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__teste_2025__2025-11.parquet",
+      "sha256": "28b3b3fa1248940c89336437d51656068e1b306cb281d994674f8bf94e548d98",
+      "bytes": 15260,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-11",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__teste_2025__2025-12.parquet",
+      "sha256": "6dedd603eada11953443843dae34c14ef2cf3175ccd3177056bdd8966da88492",
+      "bytes": 15569,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-12",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-01.parquet",
+      "sha256": "ada0ff72e054d7399ad3ed266cff00a1ef0bdda33e421a196b83267e4a21b8eb",
+      "bytes": 15976,
+      "horizon": 24,
       "scenario": "hipotese_Sao_Paulo",
       "stage": "validacao_1s2025",
       "month": "2025-01",
-      "rows": 48
+      "rows": 408,
+      "reference_origin": "2025-01-01T03:00:00Z"
     },
     {
-      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-07.parquet",
-      "sha256": "a41a8af1538c3183e08f6b22827bf3e60757873cc5e1403bfb3f46f63f0dcf08",
-      "bytes": 10109,
-      "horizon": 48,
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-02.parquet",
+      "sha256": "db9274429a381624c8e29ca7e0fa1abd77e85224d4a562477505374b272a22e8",
+      "bytes": 15580,
+      "horizon": 24,
       "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-02",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-03.parquet",
+      "sha256": "836a77d8304cfe35a6325691c73557e0262b885e7eb49e2e264d257e3a0d0a50",
+      "bytes": 15262,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-03",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-04.parquet",
+      "sha256": "a09c1b1f9f54da6bb70579e7ed06d6413d411f718f8d59f2bbfb94d44557e400",
+      "bytes": 15675,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-04",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-05.parquet",
+      "sha256": "c50b9d30877c66d7bbb058f42eea35e485b91edacfb3708d6f76ac507963c3c9",
+      "bytes": 15259,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-05",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_Sao_Paulo__validacao_1s2025__2025-06.parquet",
+      "sha256": "c7c852e3f0194b60be8acbbd7f2d52be7db3713af8027738a7cab9a1af5b4806",
+      "bytes": 14962,
+      "horizon": 24,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-06",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-01.parquet",
+      "sha256": "514822470a712c61fe658fdc2f31c4e83caa52efdffc09004cb1ca30814de07d",
+      "bytes": 16013,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 408,
+      "reference_origin": "2026-01-01T03:00:00Z"
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-02.parquet",
+      "sha256": "c7315404ac56f56db532d3a863bda665586dc05da6f95360c757a7fd18f0a6e2",
+      "bytes": 14970,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-02",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-03.parquet",
+      "sha256": "1f639258681df2fd69b5fcf1dd344be2a0f19229875b5ec95cbc47cd0e65c53e",
+      "bytes": 15298,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-03",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-04.parquet",
+      "sha256": "86ea551b6b19b1267d2c05d5c2a22e09705b69a5b0526721c789e7c6e62087d4",
+      "bytes": 15767,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-04",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-05.parquet",
+      "sha256": "f0fb8687b99a5007454cfc0ae5424a55eded518e60ce40156bec5a5f15f0803c",
+      "bytes": 15312,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-05",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-06.parquet",
+      "sha256": "69ce8bbd5d418da7aedcb206674b61725702162a1d6982749cda9ea8476fa87b",
+      "bytes": 15621,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-06",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-07.parquet",
+      "sha256": "75b3a3c5f11c5f267ff4f09284339b8a1ee3d395832600f2b048ad12717813c2",
+      "bytes": 15283,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-07",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-08.parquet",
+      "sha256": "4b85acaec17124b4d8f7adff97cd2612339e3c5aa8c9caa07932c6e8ab3f07bf",
+      "bytes": 15305,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-08",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-09.parquet",
+      "sha256": "e3388704bd8606ebd475b44a55cdc0669e30986718422482efec99ad34163fa3",
+      "bytes": 15632,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-09",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__retrospectiva_2026__2026-10.parquet",
+      "sha256": "85b91c7eb3e0ad87de65453c808d380d70d7823f1a9ee87b925a2d54eb006d5d",
+      "bytes": 15666,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-10",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-07.parquet",
+      "sha256": "2e33c6efd8a6b1bb58e97e34dec5b01f2b38143905d8d207e4c9709511a73a57",
+      "bytes": 16153,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
       "stage": "teste_2025",
       "month": "2025-07",
-      "rows": 48
+      "rows": 408,
+      "reference_origin": "2025-07-01T03:00:00Z"
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-08.parquet",
+      "sha256": "d38beb410f69a2a025da2655b031be53fc51fed766583bec3fb45ee067634de9",
+      "bytes": 15271,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-08",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-09.parquet",
+      "sha256": "8827ea5d35c3836738ada494a5fe6da0b5133418e4fce973abf434e0221db680",
+      "bytes": 15517,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-09",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-10.parquet",
+      "sha256": "1430ad9ad8d28dc47bc1b4a384f81660378226f6ccf666615d8ffef64b232df2",
+      "bytes": 15400,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-10",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-11.parquet",
+      "sha256": "80c4625696dda9148a993c96f2f67879fb76c8eb7c3aa2b7855534a2d4554d4d",
+      "bytes": 15257,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-11",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__teste_2025__2025-12.parquet",
+      "sha256": "e26f5f4113ef55d21c445d4782a21e721205c6c2141b3fbeef90268b168d8892",
+      "bytes": 15560,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-12",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-01.parquet",
+      "sha256": "0eec4d68bc8bd7542ac41345e7b3e848b934bf56a1d3cbf353f3b48ca1f18a1c",
+      "bytes": 15973,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 408,
+      "reference_origin": "2025-01-01T03:00:00Z"
+    },
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-02.parquet",
+      "sha256": "457ee06308172514a9648dcfa7405b497dd99f00875ead0c6bc7a50f36a778ee",
+      "bytes": 15569,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-02",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-03.parquet",
+      "sha256": "25d4d98bc933edeecd4a46fbcd458339642a3bd4e82f57d4cdc7a51271edc3bc",
+      "bytes": 15275,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-03",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-04.parquet",
+      "sha256": "b36de70859df4a416fd9b9b96be9ec2ec07e2fdf26f23ba59437ff53f9ef2645",
+      "bytes": 15671,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-04",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-05.parquet",
+      "sha256": "52143771466da197b4c18f4fdda2a83eb97358cc08810309c4322a87ad86008c",
+      "bytes": 15249,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-05",
+      "rows": 384
+    },
+    {
+      "file": "24__hipotese_UTC__validacao_1s2025__2025-06.parquet",
+      "sha256": "4aaea7aa13d35f64886d36f7ebc3e2276e8fe29223cba4c71b328d380c8382ba",
+      "bytes": 14964,
+      "horizon": 24,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-06",
+      "rows": 384
     },
     {
       "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-01.parquet",
-      "sha256": "9e0e69a39c32ebcd0f986be165ca53e4f4e4068ebc2fe1dd40bb34039c2ba391",
-      "bytes": 10214,
+      "sha256": "3b48c8e7daf74a8b56e2360aa46fdbc36324cfd757b02300f76bcaef0f60106a",
+      "bytes": 21101,
       "horizon": 48,
       "scenario": "hipotese_Sao_Paulo",
       "stage": "retrospectiva_2026",
       "month": "2026-01",
-      "rows": 48
+      "rows": 816,
+      "reference_origin": "2026-01-01T03:00:00Z"
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-02.parquet",
+      "sha256": "fd42d1baa4745e0e53d1343b0d63fb26c305ce64a22d91ebec4140999cc431c4",
+      "bytes": 19314,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-02",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-03.parquet",
+      "sha256": "b6ebf46cacdd0fef1bcae668e0faaf9c44e592d8c038408dfe82a509636685f5",
+      "bytes": 19785,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-03",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-04.parquet",
+      "sha256": "0632eb7748dde0b5395687c2955166f11b92200c25889f54203999f22d3c2b91",
+      "bytes": 20589,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-04",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-05.parquet",
+      "sha256": "23004b461b31635b0cf735a8a2568d1e6228550d79d4432abfbf796e2d1f72eb",
+      "bytes": 19809,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-05",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-06.parquet",
+      "sha256": "b2ac830719fa3098d32e7a7352dead71be139e631d5bbcf0533c44f916c15baf",
+      "bytes": 22400,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-06",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-07.parquet",
+      "sha256": "07864e57cdfe7b3288f79da85b236cd59c0e087a773eeb9f38b3eb3300bdc038",
+      "bytes": 20042,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-07",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-08.parquet",
+      "sha256": "f410f2c2e608c477a6cf00f1e5b1edf9aa77a3cef22a65ba38700e2a6e45c347",
+      "bytes": 19769,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-08",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-09.parquet",
+      "sha256": "f9b19df6e4ae128b6cc0b2d971a9a1c5983e3468bb80f8b66fc224ff63c599f0",
+      "bytes": 22320,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-09",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__retrospectiva_2026__2026-10.parquet",
+      "sha256": "99d52dd3f68d185fb15614a94b1fc23af9f2efb39301f801b8abe9f2281b9039",
+      "bytes": 20299,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "retrospectiva_2026",
+      "month": "2026-10",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-07.parquet",
+      "sha256": "e5f1039e3d2e56273f7349758e8f069a418557245b5b29b4de21b5ce17dbaa1d",
+      "bytes": 23095,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-07",
+      "rows": 816,
+      "reference_origin": "2025-07-01T03:00:00Z"
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-08.parquet",
+      "sha256": "3cc3b4fbc105021144e7388835825981c3525eb8db01b118cbf1022dbd5d71eb",
+      "bytes": 19736,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-08",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-09.parquet",
+      "sha256": "ef4f5010d2749b9186c762731742be05799b7ced66d7c5738c6ef79831442632",
+      "bytes": 22068,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-09",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-10.parquet",
+      "sha256": "6bda592efdbfae9658529593ffa74e87cf4124791b48e1b8a84cc51818d527e2",
+      "bytes": 20054,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-10",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-11.parquet",
+      "sha256": "bd15e23b3debd5a3dc8559c0b805266601b6406b863395586a3fc919bcabad37",
+      "bytes": 19701,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-11",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__teste_2025__2025-12.parquet",
+      "sha256": "ee618356c15472e75e84b181463c4f97a3512884e2752f621e63b724a2eb002b",
+      "bytes": 22267,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "teste_2025",
+      "month": "2025-12",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-01.parquet",
+      "sha256": "df17046d5c8c3ec3ac1966c15c881b947f5c5a3b593d8e9f7bce56198f4a2ef6",
+      "bytes": 22650,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 816,
+      "reference_origin": "2025-01-01T03:00:00Z"
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-02.parquet",
+      "sha256": "3457a4c1d74cfde214781e6c5515b51e26162a790ff1bbd7e9b243bcd91dac52",
+      "bytes": 20039,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-02",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-03.parquet",
+      "sha256": "533c08f97e4d544c7f8d95a547c15d0ffe5fa4679cb5ef0ef928d18d64609973",
+      "bytes": 19664,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-03",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-04.parquet",
+      "sha256": "8750b864b33d055a2c6144863025a93b77ac179dc160df2a8e5a6efc375b7576",
+      "bytes": 22236,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-04",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-05.parquet",
+      "sha256": "fdfa35cd3b82147ba4a26c7374ad77aa6eb954b0048e3c9f9d2627d508c156ab",
+      "bytes": 19684,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-05",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_Sao_Paulo__validacao_1s2025__2025-06.parquet",
+      "sha256": "d65c2432b994fb7d04e35216c88e832d5e9d368c39792b7e33df23aa446f8731",
+      "bytes": 19258,
+      "horizon": 48,
+      "scenario": "hipotese_Sao_Paulo",
+      "stage": "validacao_1s2025",
+      "month": "2025-06",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-01.parquet",
+      "sha256": "9001d7a066b40d56d4721ecbb831f471244f2c2dcda2a0d1712040c305476ed4",
+      "bytes": 21082,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-01",
+      "rows": 816,
+      "reference_origin": "2026-01-01T03:00:00Z"
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-02.parquet",
+      "sha256": "c606bb472d34c761dd5ef97d08a2179b361a4888d0279f6265fb0720ea9fdaad",
+      "bytes": 19321,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-02",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-03.parquet",
+      "sha256": "91fa11b3c5c61b196009b82df2f807019f452f30af1a70e2e848ffba6c85257a",
+      "bytes": 19777,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-03",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-04.parquet",
+      "sha256": "4ff00c6ae9eeccf959ab91cb98e3c136d0af72af93ec0d0c461c1f1213c615ec",
+      "bytes": 20614,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-04",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-05.parquet",
+      "sha256": "bdcf7d6d31e46ed1e9e6411f67000a7c86c7af1bc5209d2ec0768e78f9a23cb2",
+      "bytes": 19805,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-05",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-06.parquet",
+      "sha256": "1c4a35257584f0dfe2ac6e3929e5d3a1c20e9f2fc11020c56eb1ec73a8c1c81c",
+      "bytes": 22414,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-06",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-07.parquet",
+      "sha256": "515831c6741a532857b6abdb9f0db3ce41828cd477bff441fbe29f1c78e02901",
+      "bytes": 20046,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-07",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-08.parquet",
+      "sha256": "e4783a2e353e425fdac696fa7619b010869950ead52dca0636c93ba5e23c9f38",
+      "bytes": 19770,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-08",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-09.parquet",
+      "sha256": "a24b18bb257594b8fa80e88609a09bc5139dd3f9c0f95bcee7c4331214b0136a",
+      "bytes": 22251,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-09",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__retrospectiva_2026__2026-10.parquet",
+      "sha256": "a090f0a956958f43b5d04b1c3dea5da598768fb4c4e1812e970b72885dfb2f64",
+      "bytes": 20324,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "retrospectiva_2026",
+      "month": "2026-10",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-07.parquet",
+      "sha256": "9bc7b1a8fb5cd6d2af1d6221a828acd2ecf7415c901c84df264044c24088f4b9",
+      "bytes": 23082,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-07",
+      "rows": 816,
+      "reference_origin": "2025-07-01T03:00:00Z"
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-08.parquet",
+      "sha256": "0e2aa32d61544cc8a12d4eb1d1ef3826f3b159d295dc632f8e10933ea1f29229",
+      "bytes": 19728,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-08",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-09.parquet",
+      "sha256": "5092c73593ca40fb68167d5c8973bf3a5b48a994c4989d98d95e9d8b44526a8d",
+      "bytes": 22076,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-09",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-10.parquet",
+      "sha256": "0bcc4665d90d7b2f38037f6682aba093b51ff2605fc56e764d756a92fff79c03",
+      "bytes": 20059,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-10",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-11.parquet",
+      "sha256": "0576f8980b85821b2b149f968a1a6170091c933baf82cb256d110fe071468f9d",
+      "bytes": 19676,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-11",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__teste_2025__2025-12.parquet",
+      "sha256": "3e24583b6dfde37fab42590d7a5e64f7ca9f5e58e0a39cc669a7d114308265b2",
+      "bytes": 22263,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "teste_2025",
+      "month": "2025-12",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-01.parquet",
+      "sha256": "536dd1de9e0ff81753a72209743b5856078c85681ac2908d8a5670173b2b7d4b",
+      "bytes": 22651,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-01",
+      "rows": 816,
+      "reference_origin": "2025-01-01T03:00:00Z"
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-02.parquet",
+      "sha256": "3e1cc08346b693bc6c074b95a63611251d2bd22b99547d1a0da1322041ad8025",
+      "bytes": 20025,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-02",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-03.parquet",
+      "sha256": "bd76bc0da1fc189e22e99dbcf2c30c2e1d65b613dcfa80d1a9ac600d1ee2260a",
+      "bytes": 19663,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-03",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-04.parquet",
+      "sha256": "1ebd4b5d4c9b7f064b639af4760b6ff69a750a6e6b044697584059e06a4bcc99",
+      "bytes": 22247,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-04",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-05.parquet",
+      "sha256": "1b4de8779aa4ce84553f81591f5c9e446869ced8692de7306774bcedb1569993",
+      "bytes": 19690,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-05",
+      "rows": 768
+    },
+    {
+      "file": "48__hipotese_UTC__validacao_1s2025__2025-06.parquet",
+      "sha256": "6b3d4446f7de74fec9941baa520f577c9825f65a222cbd0fb53eb309be50dd02",
+      "bytes": 19229,
+      "horizon": 48,
+      "scenario": "hipotese_UTC",
+      "stage": "validacao_1s2025",
+      "month": "2025-06",
+      "rows": 768
     }
   ]
 }

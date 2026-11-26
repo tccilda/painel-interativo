@@ -158,8 +158,21 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     monkeypatch.setenv("ENERGY_FORECAST_DETAIL_DIR", str(tmp_path))
     monkeypatch.setenv("ENERGY_FORECAST_DETAIL_URL", "")
     index = versions.detail_index()
-    assert len(index) == 12 and all(item["preview"] for item in index)
-    assert sum(item["rows"] for item in index) == 432
+    assert len(index) == 88 and all(item["preview"] for item in index)
+    assert len({item["month"] for item in index}) == 22
+    assert sum(item["rows"] for item in index) == 51120
+    for entry in index:
+        path = versions.partition_path(entry)
+        catalog = versions.issues_for_models(path, entry["sha256"])
+        local = pd.to_datetime(catalog["origem_t"], utc=True).dt.tz_convert(versions.TZ)
+        assert catalog["eh_selecionado"].eq(1).all()
+        assert len(catalog) == entry["rows"] // entry["horizon"]
+        assert set(local.dt.hour) == {0, 6, 12, 18}
+        assert set(local.dt.dayofweek.ge(5)) == {False, True}
+        assert set(local.dt.strftime("%Y-%m")) == {entry["month"]}
+        if reference := entry.get("reference_origin"):
+            assert reference in set(catalog["origem_t"])
+    assert sum("reference_origin" in entry for entry in index) == 12
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception and len(hourly_values(page)) == 24
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
@@ -172,9 +185,8 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     ))
     temperature = next(card for card in page.metric if card.label == "Temperatura em t₀")
     assert all(word in temperature.proto.help for word in ("contexto", "1 h", "A621", "A601", "causal"))
-    coverage = next(item.value for item in page.caption if "12 exemplos reais" in item.value)
-    assert all(text in coverage for text in ("24 ou 48 alvos", "103.032 a 347.760 pares", "pacote legado V1",
-                                             "Mês da emissão", "Estimador", "Data da emissão", "Hora da emissão"))
+    coverage = next(item.value for item in page.caption if "97 emissões reais" in item.value)
+    assert all(text in coverage for text in ("24 ou 48 alvos", "103.032 a 347.760 pares", "pacote legado V1"))
     issue_metrics, metrics = [table.value for table in page.dataframe[:2]]
     assert issue_metrics["Estimador"].tolist() == metrics["Estimador"].tolist() == [
         "OLS estabilizado", "Sazonal semanal", "Persistência",
@@ -185,13 +197,20 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert metrics["MAPE (%)"].tolist() == ["2,54", "4,72", "13,16"]
     assert metrics["Pares"].tolist() == ["104.760"] * 3
     month = with_label(page.selectbox, "Mês da emissão (amostra V5)")
-    assert month.options == ["07/2025"] and month.value == "2025-07"
+    assert len(month.options) == 6 and month.value == "2025-07"
     issue = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
     assert issue.options == ["00:00"] and issue.value == "2025-07-01T03:00:00Z"
     details = with_label(page.expander, "Valores horários e calendário")
     assert any("Estimador exibido" in item.value and "OLS estabilizado" in item.value
                and "escolhido na avaliação" in item.value for item in details.markdown)
     assert page.selectbox(key="catalog_explorer_version").options == ["V5"]
+    month.set_value("2025-11").run()
+    assert not page.exception and not page.warning
+    dates = with_label(page.selectbox, "Data da emissão")
+    dates.set_value(pd.to_datetime(dates.options[-1], format="%d/%m/%Y").date()).run()
+    hour = with_label(page.selectbox, "Hora da emissão (horário de São Paulo)")
+    assert set(hour.options) == {"00:00", "06:00", "12:00", "18:00"}
+    assert len(hourly_values(page)) == 24
 
 
 def test_issue_comparison_uses_common_targets_and_excludes_zero_only_from_mape(monkeypatch, tmp_path):
@@ -224,7 +243,7 @@ def test_v5_preview_uses_the_current_stage_on_every_transition(monkeypatch, tmp_
     page.selectbox(key="v5_explorer_scenario").set_value(scenario)
     page.radio(key="v5_explorer_horizon").set_value(horizon).run()
     partitions = {entry["stage"]: entry for entry in versions.detail_index()
-                  if (entry["scenario"], entry["horizon"]) == (scenario, horizon)}
+                  if (entry["scenario"], entry["horizon"]) == (scenario, horizon) and "reference_origin" in entry}
     for stage, day in [
         ("teste_2025", "2025-07-01"), ("validacao_1s2025", "2025-01-01"),
         ("retrospectiva_2026", "2026-01-01"), ("teste_2025", "2025-07-01"),
@@ -238,7 +257,8 @@ def test_v5_preview_uses_the_current_stage_on_every_transition(monkeypatch, tmp_
         values = hourly_values(page)
         assert len(values) == horizon
         assert values["Alvo local"].iloc[0].startswith(f"{date.fromisoformat(day):%d/%m/%Y} 01:00")
-        expected = pd.read_parquet(versions.partition_path(partitions[stage]), columns=["passo_h", "y_pred"])
+        expected = pd.read_parquet(versions.partition_path(partitions[stage]), columns=["passo_h", "y_pred"],
+                                   filters=[("origem_t", "=", issue.value)])
         assert values["Previsto (MWmed)"].tolist() == expected.sort_values("passo_h")["y_pred"].map(lambda v: format_number(v, 2)).tolist()
 
 
@@ -366,11 +386,12 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
     assert any(all(word in item.value for word in ("episódios", "A621", "A601", "contexto", "série composta"))
                for item in app.caption)
     episodes = next(table.value for table in app.dataframe if "Erro absoluto (MWmed)" in table.value)
-    assert set(episodes["Passo"]) == {str(step) for step in range(25, 49)}
+    assert len(episodes) == 30 and set(episodes["Passo"]).issubset({str(step) for step in range(25, 49)})
     entry = next(e for e in versions.detail_index() if
-                 (e["horizon"], e["scenario"], e["stage"]) == (48, "hipotese_UTC", "teste_2025"))
+                 (e["horizon"], e["scenario"], e["stage"], e["month"]) == (48, "hipotese_UTC", "teste_2025", "2025-07"))
     original = versions.episode_rows(versions.partition_path(entry), entry["sha256"], "ols_estabilizado", 25, 48, entry["scenario"])
-    expected = original.sort_values("absolute_error", ascending=False)["absolute_error"]
+    expected = original.sort_values(["absolute_error", "timestamp", "forecast_id"],
+                                    ascending=[False, True, True]).head(30)["absolute_error"]
     assert episodes["Erro absoluto (MWmed)"].tolist() == expected.map(lambda v: format_number(v, 2)).tolist()
     assert "Eventos" in episodes and episodes["Eventos"].eq("N/D").any()
     assert app.slider[0].proto.format == "%.1f"
@@ -385,7 +406,7 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
     app.selectbox(key="evolution_stage").set_value("retrospectiva_2026").run()
     app.selectbox(key="evolution_block").set_value("1–48 h").run()
     episodes = next(table.value for table in app.dataframe if "Eventos" in table.value)
-    assert {"Confraternização Universal", "N/D"}.issubset(episodes["Eventos"])
+    assert len(episodes) == 30
     assert any("01/01/2026" in x.value and "exemplo ilustrativo único" in x.value for x in app.caption)
     app.selectbox(key="evolution_stage").set_value("teste_2025")
     app.selectbox(key="evolution_version").set_value("v1").run()
@@ -569,6 +590,9 @@ def test_https_detail_fetches_only_requested_partition_and_checks_hash(monkeypat
         return (source / name).open("rb")
 
     monkeypatch.setattr(versions, "urlopen", open_storage)
+    monkeypatch.setenv("ENERGY_FORECAST_DETAIL_HAS_LEGACY", "false")
+    assert not versions.legacy_available()
+    assert versions.legacy_path() is None
     first, second = versions.detail_index()
     assert downloaded == ["index.json"]
     assert not first["preview"] and not second["preview"]
@@ -578,3 +602,5 @@ def test_https_detail_fetches_only_requested_partition_and_checks_hash(monkeypat
     (source / second["file"]).write_bytes(b"particao corrompida")
     with pytest.raises(ValueError, match="SHA-256 divergente"):
         versions.partition_path(second)
+    monkeypatch.delenv("ENERGY_FORECAST_DETAIL_HAS_LEGACY")
+    assert versions.legacy_available()

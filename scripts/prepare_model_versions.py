@@ -158,25 +158,44 @@ def build(source, target):
 
 
 def build_preview(directory, target):
-    """Publica somente as emissões selecionadas identificadas no manifesto V5."""
-    from collections import defaultdict
-
+    """Amostra temporal determinística, preservando as emissões de referência."""
     index = json.loads((directory / "index.json").read_text(encoding="utf-8"))
     meta = json.loads((SMALL / V5 / "MANIFESTO_v5.json").read_text(encoding="utf-8"))
-    by_key = {(e["horizon"], e["scenario"], e["stage"], e["month"]): e for e in index["partitions"]}
-    groups = defaultdict(list)
+    expected = {f"previsoes_{h}h_v5.csv": meta["arquivos"][f"previsoes_{h}h_v5.csv"]["sha256"] for h in (24, 48)}
+    if index["schema"] != 1 or index["source"] != expected:
+        raise ValueError("Índice detalhado incompatível com o manifesto V5.")
+    for h in (24, 48):
+        if sum(e["rows"] for e in index["partitions"] if e["horizon"] == h) != meta["arquivos"][f"previsoes_{h}h_v5.csv"]["linhas"]:
+            raise ValueError(f"Acervo detalhado incompleto para {h} h.")
+    references = {}
     for sample in meta["amostras_leitor"]:
         issue = sample["origem_t"]
         month = pd.Timestamp(issue).tz_convert("America/Sao_Paulo").strftime("%Y-%m")
         key = (sample["horizonte_h"], sample["cenario"], sample["etapa"], month)
-        groups[key].append(issue)
+        references.setdefault(key, []).append(issue)
     target.mkdir(parents=True, exist_ok=True)
     entries = []
-    for key, issues in groups.items():
-        entry = by_key[key]
+    for entry in sorted(index["partitions"], key=lambda item: item["file"]):
+        key = (entry["horizon"], entry["scenario"], entry["stage"], entry["month"])
         source = directory / entry["file"]
         if digest(source) != entry["sha256"]:
             raise ValueError(f"Partição alterada: {source.name}.")
+        origins = pd.read_parquet(source, columns=["origem_t"], filters=[("eh_selecionado", "=", 1)])
+        origins = pd.Series(sorted(origins["origem_t"].unique()), dtype="string")
+        local = pd.to_datetime(origins, utc=True).dt.tz_convert("America/Sao_Paulo")
+        days = local.dt.normalize()
+        sampled_days = set()
+        weekend = local.dt.dayofweek.ge(5)
+        for mask in (weekend, ~weekend):
+            candidates = days.loc[mask].unique()
+            if len(candidates):
+                sampled_days.update(candidates[i] for i in {len(candidates) // 4, len(candidates) * 3 // 4})
+        issues = set(origins.loc[days.isin(sampled_days) & local.dt.hour.isin([0, 6, 12, 18])])
+        month_references = references.pop(key, [])
+        issues.update(month_references)
+        if not issues:
+            raise ValueError(f"Nenhuma emissão amostrada em {source.name}.")
+        issues = sorted(issues)
         view = pd.read_parquet(source, filters=[("origem_t", "in", issues), ("eh_selecionado", "=", 1)])
         for issue in issues:
             steps = view.loc[view["origem_t"].eq(issue), "passo_h"]
@@ -184,8 +203,13 @@ def build_preview(directory, target):
                 raise ValueError(f"Emissão selecionada inválida: {issue}.")
         path = target / source.name
         view.to_parquet(path, index=False, compression="zstd")
-        entries.append({**entry, "sha256": digest(path), "bytes": path.stat().st_size, "rows": len(view)})
-    value = {"schema": 1, "source": index["source"], "coverage": "manifest_samples", "partitions": entries}
+        preview_entry = {**entry, "sha256": digest(path), "bytes": path.stat().st_size, "rows": len(view)}
+        if month_references:
+            preview_entry["reference_origin"] = min(month_references)
+        entries.append(preview_entry)
+    if references:
+        raise ValueError("O acervo está sem partições das emissões de referência.")
+    value = {"schema": 1, "source": index["source"], "coverage": "monthly_temporal_samples", "partitions": entries}
     (target / "index.json").write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"Prévia: {len(entries)} partições, {sum(e['rows'] for e in entries)} alvos.")
 

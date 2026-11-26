@@ -28,8 +28,7 @@ TEMPERATURE_AT_ISSUE = (
     "O cartão usa a última medição disponível de cada estação até t₀, com até 1 h de defasagem."
 )
 
-PREVIEW_COVERAGE = (
-    "A prévia V5 reúne 12 exemplos reais, um por combinação de hipótese, conjunto e horizonte. "
+PREVIEW_METRICS = (
     "Cada emissão tem 24 ou 48 alvos. As métricas da aba Avaliação de Desempenho e Erros "
     "usam os recortes completos, com 103.032 a 347.760 pares de emissão e hora prevista."
 )
@@ -40,14 +39,21 @@ CLOCK_CONTEXT = (
 )
 
 
-def choice(label, options, key, labels=None):
-    return st.selectbox(label, options, key=key, format_func=labels.get if labels else str)
+def choice(label, options, key, labels=None, *, default=None):
+    index = options.index(default) if default in options else 0
+    return st.selectbox(label, options, key=key, index=index, format_func=labels.get if labels else str)
 
 
 def month_choice(label, months, key):
     options = sorted(months, reverse=True)
     labels = {month: f"{month[5:]}/{month[:4]}" for month in options}
-    return choice(label, options, key, labels)
+    reference = next((month for month in options if months[month].get("reference_origin")), None) if isinstance(months, dict) else None
+    return choice(label, options, key, labels, default=reference)
+
+
+def preview_coverage(entries):
+    issues = sum(entry["rows"] // entry["horizon"] for entry in entries)
+    return f"A amostra V5 inclui {format_number(issues, 0)} emissões reais neste recorte. {PREVIEW_METRICS}"
 
 
 def header(title):
@@ -109,9 +115,8 @@ def _render_v5(*, legacy_available):
             if legacy_available else "Versão oferece apenas V5 porque esta instalação não tem o pacote legado V1."
         )
         st.caption(
-            f"{PREVIEW_COVERAGE} {version_note} "
-            "Mês da emissão (amostra V5), Estimador, Data da emissão e Hora da emissão têm uma opção "
-            "porque o recorte da prévia contém uma única emissão do OLS estabilizado."
+            f"{preview_coverage(entries.values())} {version_note} "
+            "Selecione o mês, a data e a hora da emissão disponíveis na amostra do OLS estabilizado."
         )
     if not entries:
         st.info("Nenhuma emissão no recorte selecionado.")
@@ -130,15 +135,18 @@ def _render_v5(*, legacy_available):
     options = catalog.loc[catalog["modelo"].eq(model), "origem_t"]
     times = pd.to_datetime(options, utc=True).dt.tz_convert(versions.TZ)
     dates = sorted(times.dt.date.unique(), reverse=True)
+    reference = entry.get("reference_origin")
+    reference_dates = times.loc[options.eq(reference)].dt.date
+    day_index = dates.index(reference_dates.iloc[0]) if not reference_dates.empty else 0
     with cols[2]:
-        day = st.selectbox("Data da emissão", dates, format_func=lambda value: value.strftime("%d/%m/%Y"),
+        day = st.selectbox("Data da emissão", dates, index=day_index, format_func=lambda value: value.strftime("%d/%m/%Y"),
                            key=f"v5_date_{model_key}")
     with cols[3]:
         day_times = times.loc[times.dt.date.eq(day)]
         labels = day_times.dt.strftime("%H:%M")
         labels = labels.where(~labels.duplicated(keep=False), day_times.dt.strftime("%H:%M:%S %z"))
         issue = choice("Hora da emissão (horário de São Paulo)", sorted(options.loc[day_times.index], reverse=True),
-                       f"v5_issue_{model_key}_{day}", dict(zip(options.loc[day_times.index], labels)))
+                       f"v5_issue_{model_key}_{day}", dict(zip(options.loc[day_times.index], labels)), default=reference)
     data = versions.forecast_detail(path, entry["sha256"], horizon, model, issue)
     observed = versions.load_scenario(str(versions.root()), scenario)
     t0 = pd.Timestamp(issue)
@@ -264,7 +272,7 @@ def _reference_comparison(future, model, t0, horizon, stage, scenario, *, previe
             )
     if preview:
         st.caption(
-            "O OLS teve MAE e MAPE menores que as duas referências em 2 dos 12 exemplos e em 12 dos 12 "
+            "O OLS teve MAE e MAPE menores que as duas referências em 2 dos 12 exemplos originais do manifesto e em 12 dos 12 "
             "recortes completos. Cada exemplo mostra só uma emissão, enquanto cada recorte completo reúne "
             "todas as emissões avaliadas naquela combinação."
         )
@@ -561,7 +569,7 @@ def _episode_section(scenario, stage, horizon, block, model):
                 preview = next(iter(entries.values()))["preview"]
                 if preview:
                     st.markdown("#### Maiores erros horários da amostra exibida")
-                    st.caption(f"{PREVIEW_COVERAGE} A amostra do recorte tem um mês de emissão. A consulta ordena os erros horários do bloco selecionado.")
+                    st.caption(f"{preview_coverage(entries.values())} A consulta ordena os erros horários do mês e bloco selecionados.")
                 month = month_choice("Mês da emissão (amostra V5)" if preview else "Mês da emissão",
                                      entries, f"v5_episode_month_{scenario}_{stage}_{horizon}_{block}_{model}")
                 entry = entries[month]
