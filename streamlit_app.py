@@ -56,9 +56,9 @@ def main() -> None:
 
     navigation = st.navigation(
         [
-            st.Page(explorador.render, title="Explorador de Previsões", icon=":material/show_chart:", url_path="explorador", default=True),
-            st.Page(desempenho.render, title="Avaliação de Desempenho e Erros", icon=":material/analytics:", url_path="desempenho"),
-            st.Page(sazonalidade.render, title="Sazonalidade, Clima e Calendário", icon=":material/calendar_month:", url_path="sazonalidade"),
+            st.Page(explorador.render, title="Previsões", icon=":material/show_chart:", url_path="explorador", default=True),
+            st.Page(desempenho.render, title="Desempenho", icon=":material/analytics:", url_path="desempenho"),
+            st.Page(sazonalidade.render, title="Sazonalidade", icon=":material/calendar_month:", url_path="sazonalidade"),
         ],
         position="top",
     )

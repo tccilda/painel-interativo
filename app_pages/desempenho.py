@@ -139,7 +139,7 @@ def render() -> None:
     with filters[1]:
         weekday = st.selectbox("Dia da semana", [None] + list(range(7)), format_func=lambda value: "Todos" if value is None else ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][value], key=f"error_weekday_{settings.mode}_{split}")
     with filters[2]:
-        day_types = st.multiselect("Calendário", sorted(selected["day_type"].unique()), format_func=lambda value: DAY_LABELS.get(value, value), placeholder="Todos", key=f"error_days_{settings.mode}_{split}")
+        day_types = st.multiselect("Calendário", sorted(selected["day_type"].unique()), format_func=lambda value: DAY_LABELS.get(value, value), placeholder="Todos", key=f"error_days_{settings.mode}_{split}", wrap=True)
     temp_range = None
     with filters[3]:
         temperatures = selected["temperature_c"].dropna()
@@ -161,5 +161,5 @@ def render() -> None:
     display["day_type"] = display["day_type"].map(DAY_LABELS).fillna("Não informado")
     display["holiday_scope"] = display["holiday_scope"].map(SCOPE_LABELS).fillna("Não informado")
     columns = ["issued_at", "timestamp", "model_label", "forecast_step", "observed_load", "predicted_load", "absolute_error", "day_type", "holiday_scope", "temperature_c"]
-    data_table(display[columns].rename(columns={"issued_at": "Emissão t₀", "timestamp": "Instante previsto", "model_label": "Horizonte", "forecast_step": "Passo", "observed_load": f"Real ({settings.unit})", "predicted_load": f"Previsto ({settings.unit})", "absolute_error": f"Erro absoluto ({settings.unit})", "day_type": "Calendário", "holiday_scope": "Âmbito", "temperature_c": "Temp. (°C)"}), height=390)
+    data_table(display[columns].rename(columns={"issued_at": "Emissão t₀", "timestamp": "Instante previsto", "model_label": "Horizonte", "forecast_step": "Passo", "observed_load": f"Real ({settings.unit})", "predicted_load": f"Previsto ({settings.unit})", "absolute_error": f"Erro absoluto ({settings.unit})", "day_type": "Calendário", "holiday_scope": "Âmbito", "temperature_c": "Temp. (°C)"}), height=390, column_decimals={"Temp. (°C)": 1})
     st.download_button("Exportar episódios", csv_bytes(worst.assign(data_source=bundle.mode)), file_name=f"{'sintetico_' if bundle.mode == 'demo' else ''}maiores_erros_{split}.csv", mime="text/csv")

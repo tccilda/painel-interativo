@@ -10,7 +10,7 @@ import streamlit as st
 
 from components.charts import PLOTLY_CONFIG, WEEKDAYS, explorer_chart
 from components.metrics_cards import format_number, metric_cards
-from components.page_frame import CALENDAR_CONTEXT, DAY_LABELS, model_label, scope_label
+from components.page_frame import CALENDAR_CONTEXT, DAY_LABELS, available_choice, model_label, scope_label
 from components.tables import csv_bytes, data_table
 from services import model_versions as versions
 from services.analysis_service import largest_errors, temperature_at_issue
@@ -40,8 +40,7 @@ CLOCK_CONTEXT = (
 
 
 def choice(label, options, key, labels=None, *, default=None):
-    index = options.index(default) if default in options else 0
-    return st.selectbox(label, options, key=key, index=index, format_func=labels.get if labels else str)
+    return available_choice(label, options, key=key, format_func=labels.__getitem__ if labels else str, default=default)
 
 
 def month_choice(label, months, key):
@@ -105,19 +104,12 @@ def _render_v5(*, legacy_available):
     with columns[1]:
         stage = choice("Conjunto", list(versions.STAGES), "v5_explorer_stage", versions.STAGES)
     with columns[2]:
-        horizon = st.radio("Horizonte", [24, 48], horizontal=True, key="v5_explorer_horizon")
+        horizon = st.radio("Horizonte", [24, 48], horizontal=True, format_func=lambda hours: f"{hours} h", key="v5_explorer_horizon")
     with columns[3]:
         history_hours = st.selectbox("Histórico anterior", [72, 48, 120, 168], format_func=lambda v: f"{v} h", key="v5_explorer_history")
     entries = {e["month"]: e for e in index if (e["scenario"], e["stage"], e["horizon"]) == (scenario, stage, horizon)}
     if preview:
-        version_note = (
-            "No catálogo público, Versão oferece apenas V5. Esta instalação também tem a V1, em recorte próprio."
-            if legacy_available else "Versão oferece apenas V5 porque esta instalação não tem o pacote legado V1."
-        )
-        st.caption(
-            f"{preview_coverage(entries.values())} {version_note} "
-            "Selecione o mês, a data e a hora da emissão disponíveis na amostra do OLS estabilizado."
-        )
+        st.caption(preview_coverage(entries.values()))
     if not entries:
         st.info("Nenhuma emissão no recorte selecionado.")
         return
@@ -130,17 +122,17 @@ def _render_v5(*, legacy_available):
     catalog = versions.issues_for_models(path, entry["sha256"])
     models = sorted(catalog["modelo"].unique(), key=lambda name: (not catalog.loc[catalog["modelo"].eq(name), "eh_selecionado"].eq(1).any(), name))
     with cols[1]:
-        model = st.selectbox("Estimador", models, format_func=model_label, key=f"v5_model_{slice_key}_{month}")
+        model = available_choice("Estimador", models, format_func=model_label, key=f"v5_model_{slice_key}_{month}")
     model_key = f"{slice_key}_{month}_{model}"
     options = catalog.loc[catalog["modelo"].eq(model), "origem_t"]
     times = pd.to_datetime(options, utc=True).dt.tz_convert(versions.TZ)
     dates = sorted(times.dt.date.unique(), reverse=True)
     reference = entry.get("reference_origin")
     reference_dates = times.loc[options.eq(reference)].dt.date
-    day_index = dates.index(reference_dates.iloc[0]) if not reference_dates.empty else 0
+    reference_day = reference_dates.iloc[0] if not reference_dates.empty else None
     with cols[2]:
-        day = st.selectbox("Data da emissão", dates, index=day_index, format_func=lambda value: value.strftime("%d/%m/%Y"),
-                           key=f"v5_date_{model_key}")
+        day = available_choice("Data da emissão", dates, default=reference_day,
+                               format_func=lambda value: value.strftime("%d/%m/%Y"), key=f"v5_date_{model_key}")
     with cols[3]:
         day_times = times.loc[times.dt.date.eq(day)]
         labels = day_times.dt.strftime("%H:%M")
@@ -299,7 +291,7 @@ def render_evolution():
         version = choice("Versão da avaliação", ["Todas", *versions.VERSIONS, "piloto"], "evolution_version",
                          {"Todas": "Todas", **{v: v.upper() for v in versions.VERSIONS}, "piloto": "Piloto histórico"})
     with cols[1]:
-        horizon = st.radio("Horizonte", [24, 48], horizontal=True, key="evolution_horizon")
+        horizon = st.radio("Horizonte", [24, 48], horizontal=True, format_func=lambda hours: f"{hours} h", key="evolution_horizon")
     with cols[2]:
         scenarios = list(versions.SCENARIOS)
         if version != "Todas":
@@ -328,7 +320,7 @@ def render_evolution():
     if role != "Selecionado":
         models = sorted(population["modelo"].unique())
         if models:
-            model = st.selectbox("Estimador", models, format_func=model_label, key="evolution_model")
+            model = available_choice("Estimador", models, format_func=model_label, key="evolution_model")
             population = population.loc[population["modelo"].eq(model)]
     if population["versao"].duplicated().any():
         st.warning("Há mais de uma linha para a mesma versão no recorte. Selecione um estimador único.")
@@ -341,17 +333,17 @@ def render_evolution():
     display["modelo"] = display["modelo"].map(model_label, na_action="ignore")
     values = display[metric].dropna()
     if not values.empty:
-        fig = px.scatter(display, x="versao", y=metric, hover_data=["modelo", "n_pares"],
-                         labels={"versao": "Versão", "modelo": "Estimador", "n_pares": "Pares",
-                                 metric: versions.METRICS[metric]})
-        fig.update_traces(marker_size=10)
-        fig.update_yaxes(tickformat=",.2f", hoverformat=",.4f")
-        if values.max() - values.min() < 0.1:
-            lower = max(0.0, (values.max() + values.min()) / 2 - 0.05)
-            fig.update_yaxes(range=[lower, lower + 0.1])
+        fig = px.bar(
+            display, x="versao", y=metric,
+            hover_data={"modelo": True, "n_pares": ":,.0f", metric: ":,.4f"},
+            labels={"versao": "Versão", "modelo": "Estimador", "n_pares": "Pares",
+                    metric: versions.METRICS[metric]},
+        )
+        fig.update_yaxes(range=[0, max(1.0, values.max() * 1.08)], tickformat=",.2f")
         fig.update_layout(height=300, margin={"t": 15}, separators=",.")
         fig.update_xaxes(categoryorder="array", categoryarray=[version_label(v) for v in order])
         st.plotly_chart(fig, width="stretch", config=PLOTLY_CONFIG)
+        st.caption("Valores absolutos com os pares de cada versão. A seção V4 × V5 mostra diferenças calculadas sobre pares comuns, quando disponíveis.")
     elif display["modelo"].isna().all() and not (version == "piloto" and stage == "retrospectiva_2026"):
         if role == "Alternativa":
             st.info(f"Não há estimadores alternativos disponíveis neste recorte de {horizon} h.")
@@ -597,9 +589,9 @@ def _episode_section(scenario, stage, horizon, block, model):
                 )
         columns = st.columns(3)
         with columns[0]:
-            weekdays = st.multiselect("Dia da semana do alvo", range(7), format_func=WEEKDAYS.__getitem__, placeholder="Todos os dias da semana")
+            weekdays = st.multiselect("Dia da semana do alvo", range(7), format_func=WEEKDAYS.__getitem__, placeholder="Todos os dias da semana", wrap=True)
         with columns[1]:
-            days = st.multiselect("Calendário no alvo", sorted(rows["day_type"].unique()), format_func=DAY_LABELS.__getitem__, placeholder="Todas as categorias")
+            days = st.multiselect("Calendário no alvo", sorted(rows["day_type"].unique()), format_func=DAY_LABELS.__getitem__, placeholder="Todas as categorias", wrap=True)
         temperatures = rows["temperature_c"].dropna()
         limits = (float(temperatures.min()), float(temperatures.max()))
         with columns[2]:
@@ -621,7 +613,8 @@ def _episode_section(scenario, stage, horizon, block, model):
         if "event_name" in display:
             headings["event_name"] = "Eventos"
         st.caption("Emissão e alvo no horário de São Paulo.")
-        data_table(display[list(headings)].rename(columns=headings), height=390, alt="Maiores erros horários e eventos")
+        data_table(display[list(headings)].rename(columns=headings), height=390,
+                   column_decimals={"Temp. (°C)": 1}, alt="Maiores erros horários e eventos")
         # O CSV de episódios conserva o código de âmbito primário do calendário.
         export = worst.assign(holiday_scope=worst["holiday_scope"].str.split("+").str[0],
                               alvo_id=versions.TARGET, unidade="MWmed", versao=version, modelo=model,

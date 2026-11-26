@@ -55,7 +55,7 @@ def _render_profiles(context=None) -> None:
     years = sorted(history["timestamp"].dt.tz_convert(settings.timezone).dt.year.unique().tolist())
     period_key = settings.mode if settings.mode == "v5" else f"{settings.mode}_{period[0]}_{period[1]}"
     with controls[1]:
-        selected_years = st.multiselect("Anos", years, default=years, placeholder="Selecione os anos", key=f"patterns_years_{period_key}")
+        selected_years = st.multiselect("Anos", years, default=years, placeholder="Selecione os anos", key=f"patterns_years_{period_key}", wrap=True)
     history = history.loc[history["timestamp"].dt.tz_convert(settings.timezone).dt.year.isin(selected_years)]
     if history.empty:
         st.info("Nenhuma observação no período selecionado.")
@@ -115,7 +115,7 @@ def _render_profiles(context=None) -> None:
         selected = st.multiselect(
             "Categorias de calendário", categories, default=categories,
             format_func=lambda pair: DAY_LABELS[pair[0]] if pair[1] == "nenhum" else f"{DAY_LABELS[pair[0]]} · {scope_label(pair[1])}",
-            key=f"calendar_categories_{history_key}", placeholder="Selecione as categorias",
+            key=f"calendar_categories_{history_key}", placeholder="Selecione as categorias", wrap=True,
         )
         profile = profile.loc[pd.MultiIndex.from_frame(profile[["day_type", "holiday_scope"]]).isin(selected)]
         if profile.empty:

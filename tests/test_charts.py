@@ -171,6 +171,26 @@ def test_daily_weather_chart_respects_period_boundaries_instead_of_hourly_gap_ru
     json.loads(figure.to_json())
 
 
+@pytest.mark.parametrize(("frequency", "interval", "tickformat"), [
+    ("hourly", "h", "%d/%m<br>%H:%M"),
+    ("daily", "D", "%d/%m"),
+    ("weekly", "7D", "%d/%m"),
+])
+def test_temperature_axis_uses_brazilian_decimal_labels_without_rounding_hover(frequency, interval, tickformat):
+    frame = sample_frame().iloc[:2].copy()
+    frame["timestamp"] = pd.date_range("2026-01-05T03:00Z", periods=2, freq=interval)
+    frame["temperature_c"] = [23.12, 23.25]
+    aggregated = aggregate_load_temperature(frame, frequency=frequency)
+    figure = load_temperature_chart(aggregated, frequency=frequency)
+    assert figure.layout.separators == ",."
+    assert figure.layout.xaxis.tickformat == tickformat
+    assert figure.layout.yaxis2.tickformat == ",.1f"
+    assert figure.layout.yaxis2.dtick == 0.2
+    assert figure.layout.yaxis2.side == "right"
+    assert "%{y:,.1f} °C" in figure.data[1].hovertemplate
+    assert list(figure.data[1].y) == [23.12, 23.25]
+
+
 def test_calendar_chart_keeps_scopes_separate_and_hour_gaps():
     profile = pd.DataFrame({
         "hour": [0, 2, 0], "day_type": ["feriado"] * 3,

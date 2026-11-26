@@ -134,6 +134,7 @@ def _add_line(
         y_values.append(value)
         hover_values.append(label)
         marker_sizes.append(3 if single else 0)
+    value_format = ",.1f" if unit == "°C" else ",.2f"
     figure.add_trace(go.Scatter(
         x=x_values,
         y=y_values,
@@ -144,7 +145,7 @@ def _add_line(
         line={"color": color, "width": 2.6, "dash": dash},
         yaxis=yaxis,
         connectgaps=False,
-        hovertemplate="%{customdata}<br>" + name + ": <b>%{y:,.2f} " + unit + "</b><extra></extra>",
+        hovertemplate="%{customdata}<br>" + name + ": <b>%{y:" + value_format + "} " + unit + "</b><extra></extra>",
     ))
 
 

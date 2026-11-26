@@ -47,3 +47,24 @@ def test_table_sends_brazilian_strings_and_preserves_csv_values():
     app = AppTest.from_function(render).run()
     assert not app.exception
     assert app.dataframe[0].value.to_dict("list") == {"load": ["1.094,37", "N/D"], "events": ["N/D", "N/D"]}
+
+
+@pytest.mark.parametrize(("ascending", "values"), [
+    (True, ["-20,00", "-3,00", "2,00", "10,00", "1.000,00", "N/D", "N/D"]),
+    (False, ["1.000,00", "10,00", "2,00", "-3,00", "-20,00", "N/D", "N/D"]),
+])
+def test_table_sorts_original_numbers_and_keeps_unavailable_values_last(ascending, values):
+    def render():
+        import pandas as pd
+
+        from components.tables import csv_bytes, data_table
+
+        frame = pd.DataFrame({"value": [1000, 10, -3, None, 2, -20, float("inf")]})
+        original = csv_bytes(frame)
+        data_table(frame)
+        assert csv_bytes(frame) == original
+
+    app = AppTest.from_function(render).run()
+    app.selectbox[0].set_value(("value", ascending)).run()
+    assert not app.exception
+    assert app.dataframe[0].value["value"].tolist() == values
