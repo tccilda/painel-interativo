@@ -19,7 +19,7 @@ A comparação entre horizontes é descritiva, com os denominadores de cada mode
 
 ## Identidade provisória
 
-O título do navegador e o cabeçalho usam **Monitor de Previsão**, com o subtítulo *Painel Interativo de Previsão de Demanda Energética* na interface. O grupo ainda definirá o título da monografia. As variáveis `ENERGY_FORECAST_*`, o caminho de cache `energy-forecast-versions` e o identificador de URL do plano de deploy foram preservados para compatibilidade.
+O título do navegador e o cabeçalho usam **Monitor de Previsão**. O grupo ainda definirá o título da monografia. As variáveis `ENERGY_FORECAST_*`, o caminho de cache `energy-forecast-versions` e o identificador de URL do plano de deploy foram preservados para compatibilidade.
 
 Na revisão da identidade, os 466 testes passaram no Windows, inclusive em uma cópia limpa sem as bases privadas. O teste de inicialização retornou HTTP 200 nas três rotas. O navegador exibiu o novo nome, os títulos das três abas, os gráficos e a seleção de 48 h. A busca no conteúdo versionado não encontrou o nome de apresentação anterior.
 

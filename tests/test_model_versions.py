@@ -197,7 +197,9 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert sum("reference_origin" in entry for entry in index) == 12
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception and len(hourly_values(page)) == 24
+    assert not any(item.value.startswith("Carga do ONS Sudeste/Centro-Oeste ·") for item in page.caption)
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
+    assert any("ONS_SECO_piloto" in item.value and "MWmed" in item.value for item in method.markdown)
     text = " ".join(item.value for item in method.markdown)
     assert all(phrase in text for phrase in (
         "duas hipóteses", "UTC e São Paulo", "aparecem no horário de São Paulo",

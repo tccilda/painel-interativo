@@ -19,6 +19,8 @@ from services.forecast_catalog import forecast_catalog
 from services.scientific_results import common_issue_metrics, issue_frame
 
 
+TARGET_CONTEXT = f"A série {versions.TARGET} mede a carga regional do {versions.REGION}, em MWmed."
+
 TEMPERATURE_CONTEXT = (
     "A média aritmética das medições disponíveis de A621 e A601 é informação de contexto, "
     "sem preenchimento de lacunas. Os modelos V5 usaram a série composta de temperatura do Rio de Janeiro, "
@@ -56,11 +58,6 @@ def preview_coverage(entries):
     return f"A amostra V5 inclui {format_number(issues, 0)} emissões reais neste recorte. {PREVIEW_METRICS}"
 
 
-def header(title):
-    st.header(title)
-    st.caption(f"Carga do ONS Sudeste/Centro-Oeste · MWmed · {versions.TARGET}")
-
-
 @st.cache_resource(show_spinner=False)
 def _legacy(path, sha):
     bundle = versions.legacy_bundle(path, sha)
@@ -68,7 +65,7 @@ def _legacy(path, sha):
 
 
 def render_explorer(legacy_render):
-    header("Explorador de Previsões")
+    st.header("Explorador de Previsões")
     available = ["V5", "V1"] if versions.legacy_available() else ["V5"]
     version = choice("Versão", available, "catalog_explorer_version")
     try:
@@ -146,6 +143,7 @@ def _render_v5(*, legacy_available):
     _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, preview=preview)
 
     with st.expander("Detalhes metodológicos"):
+        st.write(TARGET_CONTEXT)
         st.write("V2–V4 têm apenas métricas agregadas, em Avaliação de Desempenho e Erros.")
         if not legacy_available:
             st.write("As previsões horárias da V1 estão disponíveis em instalações com o ZIP legado.")
@@ -273,7 +271,7 @@ def _filter(frame, horizon, stage, scenario):
 
 
 def render_evolution():
-    header("Avaliação de Desempenho e Erros")
+    st.header("Avaliação de Desempenho e Erros")
     st.subheader("Evolução dos Modelos")
     try:
         tables = versions.metric_tables(str(versions.root()))
@@ -389,6 +387,7 @@ def render_evolution():
                 "n_pares": "Pares", **versions.METRICS,
             })
     with st.expander("Disponibilidade e detalhes metodológicos"):
+        st.write(TARGET_CONTEXT)
         st.write("A comparação V4 × V5 usa os pares comuns fornecidos. Os deltas são V5 − V4 e a variação do MAPE é expressa em pontos percentuais.")
         st.write("V1 tem carimbo bruto sem fuso documentado e fica em recorte próprio. V2–V4 incluem agregados; V1 e V5 têm detalhe quando a fonte correspondente está configurada. As duas hipóteses de V2–V5 seguem abertas.")
         st.write("N/D representa ausência no recorte. MAE e RMSE em MWmed; MAPE em %. Os blocos 1–24 e 25–48 pertencem ao modelo de 48 h. Validação, teste e retrospectiva de 2026 são exibidos separadamente.")
@@ -617,7 +616,7 @@ def render_seasonality(render_profiles):
     from components.sidebar import SidebarSettings
     from services.data_loader import DataBundle
 
-    header("Sazonalidade, Clima e Calendário")
+    st.header("Sazonalidade, Clima e Calendário")
     scenario = choice("Hipótese de horário", list(versions.SCENARIOS)[:2], "v5_patterns_scenario", versions.SCENARIOS)
     station = choice("Estação", ["Média disponível", "A621", "A601"], "v5_patterns_station",
                      {"Média disponível": "Média disponível", "A621": "A621 · Vila Militar", "A601": "A601 · Seropédica"})
@@ -631,6 +630,7 @@ def render_seasonality(render_profiles):
     bundle = DataBundle("v5", [], value.observations, [], weather=value.weather, calendar=value.calendar)
     with st.expander("Temperatura observada e série dos modelos V5"):
         st.write(f"Em Carga × Temperatura, as medições correspondem ao horário da carga. {TEMPERATURE_CONTEXT}")
+        st.write(TARGET_CONTEXT)
     render_profiles((bundle, settings))
     with st.expander("Inventário versionado e pendências"):
         st.write(CALENDAR_CONTEXT)

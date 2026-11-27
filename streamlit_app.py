@@ -12,7 +12,6 @@ from services.app_data import has_model_files, imported_config_path, load_app_co
 
 
 APP_NAME = "Monitor de Previsão"
-APP_SUBTITLE = "Painel Interativo de Previsão de Demanda Energética"
 
 
 def main() -> None:
@@ -63,7 +62,6 @@ def main() -> None:
         position="top",
     )
     st.title(APP_NAME, anchor=False)
-    st.markdown(f"*{APP_SUBTITLE}*")
     navigation.run()
 
 

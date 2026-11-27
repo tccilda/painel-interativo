@@ -100,7 +100,7 @@ A navegação fica no topo. O seletor de fonte só aparece quando a instalação
 
 ## Arquitetura
 
-O nome e o subtítulo do aplicativo são definidos por `APP_NAME` e `APP_SUBTITLE` em `streamlit_app.py`. As variáveis `ENERGY_FORECAST_*` e o diretório temporário `energy-forecast-versions` conservam seus nomes para que configurações instaladas e caches existentes continuem funcionando.
+O nome do aplicativo é definido por `APP_NAME` em `streamlit_app.py`. As variáveis `ENERGY_FORECAST_*` e o diretório temporário `energy-forecast-versions` conservam seus nomes para que configurações instaladas e caches existentes continuem funcionando.
 
 ```text
 streamlit_app.py             # Configuração e navegação st.Page/st.navigation
