@@ -229,6 +229,12 @@ def _download(base, filename, expected, size_limit):
     return destination
 
 
+@st.cache_data(show_spinner=False)
+def manifest_issues():
+    path = root() / V5 / "MANIFESTO_v5.json"
+    return json.loads(path.read_text(encoding="utf-8"))["amostras_leitor"]
+
+
 def detail_index():
     path = _details_dir() / "index.json"
     if not path.is_file():

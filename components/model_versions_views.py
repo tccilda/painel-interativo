@@ -11,11 +11,12 @@ import streamlit as st
 from components.charts import PLOTLY_CONFIG, WEEKDAYS, explorer_chart
 from components.metrics_cards import format_number, metric_cards
 from components.page_frame import CALENDAR_CONTEXT, DAY_LABELS, available_choice, model_label, scope_label
+from components.scientific_results import render_headline, render_new_year, render_time_sensitivity, render_version_examples
 from components.tables import csv_bytes, data_table
 from services import model_versions as versions
 from services.analysis_service import largest_errors, temperature_at_issue
 from services.forecast_catalog import forecast_catalog
-from services.metrics_service import calculate_metrics
+from services.scientific_results import common_issue_metrics, issue_frame
 
 
 TEMPERATURE_CONTEXT = (
@@ -57,7 +58,7 @@ def preview_coverage(entries):
 
 def header(title):
     st.header(title)
-    st.caption("Carga do ONS Sudeste/Centro-Oeste · MWmed")
+    st.caption(f"Carga do ONS Sudeste/Centro-Oeste · MWmed · {versions.TARGET}")
 
 
 @st.cache_resource(show_spinner=False)
@@ -166,15 +167,11 @@ def _render_v5(*, legacy_available):
         )
 
 def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, *, preview):
-    future = data.rename(columns={"instante_alvo": "timestamp", "y_real": "observed_load",
-                                  "y_pred": "predicted_load", "y_baseline_semanal": "seasonal_load",
-                                  "y_baseline_persistencia": "persistence_load"})
-    future = future.assign(timestamp=pd.to_datetime(future["timestamp"], utc=True), phase="previsão")
-    future.loc[future["timestamp"].gt(pd.Timestamp.now(tz="UTC")), "observed_load"] = float("nan")
+    future = issue_frame(data)
     previous = observed.observations
     previous = previous.loc[(previous["timestamp"] <= t0) & (previous["timestamp"] > t0 - timedelta(hours=history_hours))]
-    columns = ["timestamp", "observed_load", "predicted_load", "seasonal_load", "phase"]
-    frame = pd.concat([previous.assign(predicted_load=float("nan"), seasonal_load=float("nan"), phase="histórico")[columns], future[columns]], ignore_index=True)
+    columns = ["timestamp", "observed_load", "predicted_load", "seasonal_load", "persistence_load", "phase"]
+    frame = pd.concat([previous.assign(phase="histórico").reindex(columns=columns), future[columns]], ignore_index=True)
     peak = future.loc[future["predicted_load"].idxmax()]
     temperature = temperature_at_issue(observed.weather, t0, versions.REGION)
     labels = [versions.classify(row, observed.events) for row in data.itertuples(index=False)]
@@ -190,8 +187,6 @@ def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours
     model = data["modelo"].iloc[0]
     _reference_comparison(future, model, t0, horizon, stage, scenario, preview=preview)
     figure = explorer_chart(frame, t0)
-    figure.add_trace(go.Scatter(x=future["timestamp"].dt.tz_convert(versions.TZ), y=future["persistence_load"],
-                                name="Persistência", mode="lines", line={"dash": "dot"}))
     st.plotly_chart(figure, width="stretch", config=PLOTLY_CONFIG)
     with st.expander("Valores horários e calendário"):
         counts = pd.Series([DAY_LABELS[x[0]] for x in labels]).value_counts(sort=False)
@@ -221,7 +216,7 @@ def _reference_comparison(future, model, t0, horizon, stage, scenario, *, previe
     references = {"sazonal_semanal": "seasonal_load", "persistencia": "persistence_load"}
     methods = {model: "predicted_load", **{name: column for name, column in references.items() if name != model}}
     global_methods = ["ols_estabilizado", *references]
-    common = future[["observed_load", *methods.values()]].dropna()
+    common, metrics = common_issue_metrics(future, methods)
     local_time = t0.tz_convert(versions.TZ).strftime("%d/%m/%Y às %H:%M")
     st.markdown("#### Comparação com as referências")
     st.caption(f"V5 · {versions.REGION} · {versions.STAGES[stage]} · {horizon} h · {versions.SCENARIOS[scenario]}")
@@ -232,8 +227,7 @@ def _reference_comparison(future, model, t0, horizon, stage, scenario, *, previe
         f"{common['observed_load'].ne(0).sum()} para o MAPE."
     )
     rows = []
-    for name, column in methods.items():
-        result = calculate_metrics(common[["observed_load", column]].rename(columns={column: "predicted_load"}))
+    for name, result in metrics.items():
         rows.append({"Estimador": model_label(name), "MAE (MWmed)": result["mae"], "MAPE (%)": result["mape"]})
     with issue_column:
         data_table(pd.DataFrame(rows), alt="MAE e MAPE da emissão selecionada")
@@ -325,6 +319,10 @@ def render_evolution():
     if population["versao"].duplicated().any():
         st.warning("Há mais de uma linha para a mesma versão no recorte. Selecione um estimador único.")
         return
+    focus = population.loc[population["versao"].eq("v5" if version == "Todas" else version)]
+    selected = focus.iloc[0] if len(focus) == 1 else None
+    render_headline(tables["globais"], selected if role != "Referência" else None)
+    st.markdown("#### Comparação entre versões")
     order = list(versions.VERSIONS) if version == "Todas" else [version]
     if version == "Todas" and role == "Piloto" and scenario == "sem_cenario_bruto":
         order.insert(0, "piloto")
@@ -359,6 +357,8 @@ def render_evolution():
     if version in ("Todas", "v4", "v5"):
         _paired_section(tables["pares"], horizon, stage, scenario, block, role, model, population)
     _horizon_summary(tables["globais"], stage, scenario, version)
+    render_time_sensitivity(tables["globais"], selected)
+    render_new_year(tables["globais"], default_scenario=scenario, default_horizon=horizon)
     if version in ("Todas", "v5") and scenario != "sem_cenario_bruto" and role != "Referência":
         selected = population.loc[population["versao"].eq("v5"), "modelo"]
         if not selected.empty:
@@ -406,6 +406,7 @@ def render_evolution():
             "- **V5** versionou os atos, com vigência e revogação quando documentadas, incorporou eventos locais "
             "verificados e publicou previsões e métricas. A comparação V4 × V5 usa pares e estimadores em comum."
         )
+        render_version_examples(tables["globais"], tables["pares"])
         if version in ("Todas", "v5"):
             st.caption("Esta tabela consulta o catálogo histórico de disponibilidade (Piloto e V1–V4). A V5 tem métricas e cobertura em seções próprias nesta aba.")
         subset = _filter(tables["disponibilidade"], horizon, stage, scenario)
@@ -576,17 +577,6 @@ def _episode_section(scenario, stage, horizon, block, model):
         if rows.empty:
             st.info("Nenhum par com carga observada disponível para este estimador.")
             return
-        if not is_legacy and stage == "retrospectiva_2026" and month == "2026-01" and model == "ols_estabilizado":
-            st.caption(
-                "A emissão de 01/01/2026 à meia-noite é um exemplo ilustrativo único. A Sazonal semanal "
-                "usou as horas correspondentes de 25/12/2025 e teve menor MAE que o OLS nesta emissão. "
-                "No recorte completo da Retrospectiva 2026, o OLS teve menor MAE nas duas hipóteses e horizontes."
-            )
-            if scenario == "hipotese_UTC" and block == "1–48 h":
-                st.caption(
-                    "Nas 48 h sob a hipótese UTC, o MAE da emissão foi 3.196,54 MWmed. "
-                    "O maior erro absoluto foi 7.838,44 MWmed no passo 34, em 02/01 às 10:00 no horário de São Paulo."
-                )
         columns = st.columns(3)
         with columns[0]:
             weekdays = st.multiselect("Dia da semana do alvo", range(7), format_func=WEEKDAYS.__getitem__, placeholder="Todos os dias da semana", wrap=True)
@@ -595,7 +585,7 @@ def _episode_section(scenario, stage, horizon, block, model):
         temperatures = rows["temperature_c"].dropna()
         limits = (float(temperatures.min()), float(temperatures.max()))
         with columns[2]:
-            selection = (st.slider("Temperatura no alvo (°C)", *limits, limits, format="%.1f",
+            selection = (st.slider("Temperatura no alvo (°C)", *limits, limits, format="localized",
                                    help="Média das estações disponíveis no alvo, para análise retrospectiva.")
                          if limits[0] < limits[1] else limits)
         worst = largest_errors(rows, weekday=weekdays or None, day_types=days or None,

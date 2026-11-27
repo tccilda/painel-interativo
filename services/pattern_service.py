@@ -185,14 +185,14 @@ def aggregate_load_temperature(
     return result[columns]
 
 
-def calendar_profile(
+def calendar_observations(
     observations: pd.DataFrame,
     calendar: pd.DataFrame,
     region: str,
     timezone: str = DEFAULT_TIMEZONE,
 ) -> pd.DataFrame:
-    """Perfil horário por categoria e escopo informados, sem inventar eventos."""
-    columns = ["hour", "day_type", "holiday_scope", "mean", "count"]
+    """Classifica cada hora por uma categoria, inclusive quando há âmbitos simultâneos."""
+    columns = ["timestamp", "observed_load", "date", "hour", "day_type", "holiday_scope"]
     if observations.empty:
         return pd.DataFrame(columns=columns)
     observed = _regional(observations, region)[["timestamp", "observed_load"]].copy()
@@ -213,6 +213,23 @@ def calendar_profile(
             raise ValueError("Há classificações de calendário duplicadas para a mesma região e data local.")
         observed = observed.merge(events, on="date", how="left", validate="many_to_one")
         observed[["day_type", "holiday_scope"]] = observed[["day_type", "holiday_scope"]].fillna("nao_informado")
-    return observed.groupby(["hour", "day_type", "holiday_scope"], sort=True)["observed_load"].agg(
+    return observed.loc[observed["observed_load"].notna(), columns]
+
+
+def calendar_hourly_profile(hours: pd.DataFrame) -> pd.DataFrame:
+    return hours.groupby(["hour", "day_type", "holiday_scope"], sort=True)["observed_load"].agg(
         mean=_stable_mean, count="count",
-    ).reset_index()[columns]
+    ).reset_index()
+
+
+def calendar_profile(
+    observations: pd.DataFrame, calendar: pd.DataFrame, region: str, timezone: str = DEFAULT_TIMEZONE,
+) -> pd.DataFrame:
+    """Perfil horário com classificação declarada."""
+    return calendar_hourly_profile(calendar_observations(observations, calendar, region, timezone))
+
+
+def calendar_coverage(hours: pd.DataFrame) -> pd.DataFrame:
+    return hours.groupby(["day_type", "holiday_scope"]).agg(
+        observed_hours=("timestamp", "nunique"), civil_dates=("date", "nunique"),
+    )

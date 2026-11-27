@@ -132,9 +132,16 @@ def test_audited_calendar_uses_versioned_ids_and_separate_pending_rows():
     assert "Ponto facultativo · Administração pública federal + Municipal — Rio de Janeiro" in categories.options
     counts = next(table.value for table in app.dataframe if "Horas" in table.value)
     assert sum(int(value.replace(".", "")) for value in counts["Horas"]) == 24837
-    assert counts.loc[counts["Horas"].eq("24"), "Tamanho da amostra"].tolist() == ["Apenas 1 dia equivalente"] * 2
-    assert counts.loc[counts["Horas"].eq("120"), "Tamanho da amostra"].tolist() == ["Grupo pequeno"]
+    assert counts.loc[counts["Horas"].eq("24"), "Datas civis distintas"].tolist() == ["1"] * 2
+    assert counts.loc[counts["Horas"].eq("120"), "Datas civis distintas"].tolist() == ["5"]
+    assert set(counts.loc[counts["Horas"].eq("24"), "Tamanho da amostra"]) == {"Rara · menos de 5 datas"}
+    assert any("24.837 de 24.840" in entry.value and "99,99%" in entry.value for entry in app.caption)
     assert "00:00" in next(table.value["Hora"].tolist() for table in app.dataframe if "Hora" in table.value)
+    plots = [json.loads(chart.proto.spec) for chart in app.get("plotly_chart")]
+    calendar = next(chart for chart in plots if chart["layout"].get("title", {}).get("text") == "Perfil por calendário")
+    assert all(not trace["name"].endswith(" · 24 h") for trace in calendar["data"])
+    rare = next(table.value for table in app.dataframe if "observed_load" in table.value)
+    assert len(rare) >= 48
     assert events["conhecido_ate"].eq("N/D").any()
     assert events["esfera"].isin(["Municipal — Rio de Janeiro", "Estadual — Rio de Janeiro"]).any()
     pending = next(table.value for table in app.dataframe if "acao" in table.value)
@@ -414,7 +421,7 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
                                     ascending=[False, True, True]).head(30)["absolute_error"]
     assert episodes["Erro absoluto (MWmed)"].tolist() == expected.map(lambda v: format_number(v, 2)).tolist()
     assert "Eventos" in episodes and episodes["Eventos"].eq("N/D").any()
-    assert app.slider[0].proto.format == "%.1f"
+    assert app.slider[0].proto.format == "localized"
     exports = [item.proto.label for item in app.get("download_button")]
     assert {"Exportar episódios", "Exportar métricas do recorte", "Exportar pares comuns"}.issubset(exports)
     first_month = with_label(app.selectbox, "Mês da emissão (amostra V5)")
@@ -427,7 +434,7 @@ def test_v5_evaluation_uses_one_month_and_filters_real_episodes(monkeypatch, tmp
     app.selectbox(key="evolution_block").set_value("1–48 h").run()
     episodes = next(table.value for table in app.dataframe if "Eventos" in table.value)
     assert len(episodes) == 30
-    assert any("01/01/2026" in x.value and "exemplo ilustrativo único" in x.value for x in app.caption)
+    assert any("Estudo de caso · Ano-Novo de 2026" == box.label for box in app.expander)
     app.selectbox(key="evolution_stage").set_value("teste_2025")
     app.selectbox(key="evolution_version").set_value("v1").run()
     assert not app.exception
@@ -536,7 +543,8 @@ def test_version_bars_start_at_zero_for_close_values_and_export_full_precision(
     app = AppTest.from_string(
         "from components.model_versions_views import render_evolution; render_evolution()", default_timeout=60,
     ).run()
-    chart = json.loads(app.get("plotly_chart")[0].proto.spec)
+    charts = [json.loads(item.proto.spec) for item in app.get("plotly_chart")]
+    chart = next(item for item in charts if item["layout"].get("xaxis", {}).get("title", {}).get("text") == "Versão")
     assert chart["data"][0]["type"] == "bar"
     assert chart["layout"]["yaxis"]["range"][0] == 0
     app.selectbox(key="evolution_role").set_value(role)
@@ -546,7 +554,8 @@ def test_version_bars_start_at_zero_for_close_values_and_export_full_precision(
     encoded.clear()
     app.run()
     assert not app.exception
-    chart = json.loads(app.get("plotly_chart")[0].proto.spec)
+    charts = [json.loads(item.proto.spec) for item in app.get("plotly_chart")]
+    chart = next(item for item in charts if item["layout"].get("xaxis", {}).get("title", {}).get("text") == "Versão")
     assert chart["data"][0]["type"] == "bar"
     assert chart["layout"]["separators"] == ",."
     axis = chart["layout"]["yaxis"]
