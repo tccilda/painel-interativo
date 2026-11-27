@@ -5,7 +5,7 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from services.pattern_service import aggregate_load_temperature, calendar_profile, daily_profile, join_weather, monthly_profile, weekly_profile
+from services.pattern_service import aggregate_load_temperature, calendar_coverage, calendar_observations, calendar_profile, daily_profile, join_weather, monthly_profile, weekly_profile
 
 
 def observations(timestamps, values, region="A"):
@@ -221,3 +221,19 @@ def test_visual_means_handle_large_finite_loads_without_changing_hourly_source()
     result = aggregate_load_temperature(frame, "daily")
     assert result.observed_load.iloc[0] == pytest.approx(1e308)
     assert result.n_pairs.iloc[0] == 2
+
+
+
+def test_calendar_coverage_counts_local_dates_without_expanding_simultaneous_scopes():
+    frame = observations(["2026-01-05T02:00Z", "2026-01-05T03:00Z", "2026-01-05T04:00Z",
+                          "2026-01-06T03:00Z"], [50., 100., 200., 300.])
+    calendar = frame[["timestamp", "region"]].assign(
+        day_type="ponto_facultativo", holiday_scope="estadual+municipal"
+    )
+    hours = calendar_observations(frame, calendar, "A")
+    coverage = calendar_coverage(hours)
+    assert coverage.loc[("ponto_facultativo", "estadual+municipal")].to_dict() == {
+        "observed_hours": 4, "civil_dates": 3,
+    }
+    assert hours["date"].tolist() == [date(2026, 1, 4), date(2026, 1, 5), date(2026, 1, 5), date(2026, 1, 6)]
+    assert calendar_profile(frame, calendar, "A")["count"].sum() == 4

@@ -145,7 +145,7 @@ def render() -> None:
         temperatures = selected["temperature_c"].dropna()
         if not temperatures.empty and temperatures.min() < temperatures.max():
             limits = (float(temperatures.min()), float(temperatures.max()))
-            chosen_temp = st.slider("Temperatura (°C)", limits[0], limits[1], limits, key=f"error_temp_{settings.mode}_{split}", help="Sem alterar a faixa, inclui também pares sem temperatura. Ao restringir, usa apenas leituras correspondentes.")
+            chosen_temp = st.slider("Temperatura (°C)", limits[0], limits[1], limits, format="localized", key=f"error_temp_{settings.mode}_{split}", help="Sem alterar a faixa, inclui também pares sem temperatura. Ao restringir, usa apenas leituras correspondentes.")
             if chosen_temp != limits:
                 temp_range = chosen_temp
         else:

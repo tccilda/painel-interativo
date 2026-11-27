@@ -10,7 +10,7 @@ from components.metrics_cards import format_number
 from components.page_frame import CALENDAR_CONTEXT, DAY_LABELS, page_header, scope_label
 from components.tables import data_table
 from services.history_service import filter_history, region_history
-from services.pattern_service import aggregate_load_temperature, annual_profile, calendar_profile, join_weather, monthly_profile
+from services.pattern_service import aggregate_load_temperature, annual_profile, calendar_coverage, calendar_hourly_profile, calendar_observations, join_weather, monthly_profile
 
 
 def render() -> None:
@@ -104,46 +104,66 @@ def _render_profiles(context=None) -> None:
     else:
         st.info("Selecione as duas datas do intervalo climático.")
     st.subheader("Carga por tipo de dia")
-    profile = calendar_profile(history, bundle.calendar, settings.region, settings.timezone)
-    if bundle.calendar.empty or profile.empty or profile["day_type"].eq("nao_informado").all():
+    hours = calendar_observations(history, bundle.calendar, settings.region, settings.timezone)
+    if bundle.calendar.empty or hours.empty or hours["day_type"].eq("nao_informado").all():
         st.info("Calendário não informado para o período.")
     else:
         if bundle.mode == "v5":
             st.caption(CALENDAR_CONTEXT)
-        sample = profile.groupby(["day_type", "holiday_scope"])["count"].sum()
-        categories = sample.index.tolist()
+        coverage = calendar_coverage(hours)
+        categories = coverage.index.tolist()
         selected = st.multiselect(
             "Categorias de calendário", categories, default=categories,
             format_func=lambda pair: DAY_LABELS[pair[0]] if pair[1] == "nenhum" else f"{DAY_LABELS[pair[0]]} · {scope_label(pair[1])}",
             key=f"calendar_categories_{history_key}", placeholder="Selecione as categorias", wrap=True,
         )
-        profile = profile.loc[pd.MultiIndex.from_frame(profile[["day_type", "holiday_scope"]]).isin(selected)]
+        shown = coverage.loc[coverage.index.isin(selected)]
+        eligible = shown.loc[shown["civil_dates"].ge(5) & (shown.index.get_level_values("day_type") != "nao_informado")]
+        hour_keys = pd.MultiIndex.from_frame(hours[["day_type", "holiday_scope"]])
+        selected_hours = hours.loc[hour_keys.isin(shown.index)]
+        profile = calendar_hourly_profile(hours.loc[hour_keys.isin(eligible.index)])
         if profile.empty:
-            st.info("Selecione uma categoria para exibir o perfil.")
+            st.info("Nenhuma categoria selecionada atende ao critério de cinco datas civis observadas.")
         else:
             st.plotly_chart(calendar_profile_chart(profile, unit=settings.unit), width="stretch", config=PLOTLY_CONFIG)
-        shown = sample.loc[sample.index.isin(selected)]
-        st.caption(
-            f"{format_number(shown.sum(), 0)} h únicas nas categorias exibidas · "
-            f"{format_number(sample.sum(), 0)} h no recorte. Grupos de até 120 h (5 dias equivalentes) "
-            "aparecem com traço pontilhado."
-        )
-        counts = shown.rename("Horas").reset_index()
-        counts["Dias equivalentes"] = counts["Horas"].div(24).map(lambda days: format_number(days, 1))
-        counts["Tamanho da amostra"] = counts["Horas"].map(
-            lambda hours: "Apenas 1 dia equivalente" if hours == 24 else "Grupo pequeno" if hours <= 120 else "Mais de 5 dias"
-        )
-        if not counts.empty:
+
+        expected = pd.date_range(pd.Timestamp(period[0]).tz_localize(settings.timezone),
+                                 pd.Timestamp(period[1] + timedelta(days=1)).tz_localize(settings.timezone),
+                                 inclusive="left", freq="h")
+        expected_hours = int(expected.year.isin(selected_years).sum())
+        total = int(coverage["observed_hours"].sum())
+        st.caption(f"{format_number(total, 0)} de {format_number(expected_hours, 0)} h esperadas no período e anos selecionados "
+                   f"({format_number(100 * total / expected_hours, 2) if expected_hours else 'N/D'}%). "
+                   "O perfil exige cinco datas civis distintas com observações por categoria. "
+                   "O limiar é exploratório e não garante significância estatística.")
+        if not shown.empty:
+            counts = shown.reset_index()
             counts["day_type"] = counts["day_type"].map(DAY_LABELS)
             counts["holiday_scope"] = counts["holiday_scope"].map(scope_label)
-            data_table(counts, labels={"day_type": "Calendário", "holiday_scope": "Âmbito"},
-                       alt="Horas e dias equivalentes por categoria do calendário")
+            counts["% das horas observadas"] = counts["observed_hours"] / total * 100
+            counts["Tamanho da amostra"] = counts["civil_dates"].map(
+                lambda dates: "Rara · menos de 5 datas" if dates < 5 else "5 datas ou mais"
+            )
+            data_table(counts.rename(columns={"day_type": "Calendário", "holiday_scope": "Âmbito",
+                                             "observed_hours": "Horas", "civil_dates": "Datas civis distintas"}),
+                       alt="Horas observadas, datas civis e cobertura por categoria do calendário")
         with st.expander("Amostra do calendário"):
-            display = profile.copy()
-            display["hour"] = display["hour"].map(lambda hour: f"{hour:02d}:00")
-            display["day_type"] = display["day_type"].map(DAY_LABELS).fillna("Não informado")
-            display["holiday_scope"] = display["holiday_scope"].map(scope_label)
-            data_table(display.rename(columns={"hour": "Hora", "day_type": "Calendário", "holiday_scope": "Âmbito", "mean": f"Média ({settings.unit})", "count": "Observações"}))
+            counts_by_hour = selected_hours.groupby(["hour", "day_type", "holiday_scope"]).size().rename("Observações").reset_index()
+            counts_by_hour["hour"] = counts_by_hour["hour"].map(lambda hour: f"{hour:02d}:00")
+            counts_by_hour["day_type"] = counts_by_hour["day_type"].map(DAY_LABELS)
+            counts_by_hour["holiday_scope"] = counts_by_hour["holiday_scope"].map(scope_label)
+            data_table(counts_by_hour.rename(columns={"hour": "Hora", "day_type": "Calendário", "holiday_scope": "Âmbito"}),
+                       alt="Número de observações por hora e categoria")
+            rare = shown.loc[shown["civil_dates"].lt(5)]
+            rare_hours = hours.loc[hour_keys.isin(rare.index), ["timestamp", "day_type", "holiday_scope", "observed_load"]].copy()
+            if not rare_hours.empty:
+                st.markdown("**Registros horários de categorias raras**")
+                rare_hours["timestamp"] = rare_hours["timestamp"].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M %z")
+                rare_hours["day_type"] = rare_hours["day_type"].map(DAY_LABELS)
+                rare_hours["holiday_scope"] = rare_hours["holiday_scope"].map(scope_label)
+                data_table(rare_hours, height=260, labels={"timestamp": "Data e hora local", "day_type": "Calendário",
+                           "holiday_scope": "Âmbito", "observed_load": f"Carga observada ({settings.unit})"},
+                           alt="Registros horários das categorias raras")
     with st.expander("Detalhes metodológicos"):
         st.write("Perfis são médias das cargas horárias disponíveis, sem extrapolar períodos incompletos. Contagens estão no hover. As análises usam somente 2024–2026 e observações já ocorridas.")
         st.write("A dispersão mantém todos os pares exatos do intervalo climático, com transparência e renderização WebGL. Não há interpolação, imputação ou conclusão causal.")
@@ -154,7 +174,7 @@ def _render_profiles(context=None) -> None:
             st.write("A classificação horária vem dos IDs de evento conhecidos naquele instante. Quando atos coexistem, o perfil reúne os âmbitos na mesma categoria e conta a hora uma vez.")
         st.write("Prioridade do calendário: feriado > ponto facultativo > fim de semana > dia útil. O ponto facultativo aplica-se ao âmbito administrativo indicado, sem implicar paralisação de toda a economia. Datas sem classificação permanecem não informadas.")
         if bundle.mode == "v5":
-            st.write("A621 fica na Vila Militar (Rio de Janeiro) e A601 em Seropédica. Os dados locais contextualizam uma série de carga regional.")
+            st.write("A621 fica na Vila Militar (Rio de Janeiro) e A601 em Seropédica. As medições meteorológicas e os eventos do Rio contextualizam a série de carga regional. Sua cobertura é local.")
         if bundle.mode == "demo":
             st.write("O calendário e todas as demais variáveis são sintéticos; não são fontes oficiais.")
     with st.expander("Histórico horário"):

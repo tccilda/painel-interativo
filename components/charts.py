@@ -235,6 +235,8 @@ def explorer_chart(
     _add_line(figure, target, "predicted_load", "Previsto", TEAL, timezone, dash="dash", unit=unit)
     _add_line(figure, target, "observed_load", "Real", "#7751A8", timezone, unit=unit)
     _add_line(figure, target, "seasonal_load", "Semana anterior", "#9C5700", timezone, dash="dot", unit=unit)
+    if "persistence_load" in target:
+        _add_line(figure, target, "persistence_load", "Persistência", "#52657A", timezone, dash="dashdot", unit=unit)
     _mark_issuance(figure, issued_at, timezone)
     figure.update_xaxes(tickformat="%d/%m<br>%H:%M")
     figure.update_layout(margin={"b": 70})
@@ -364,8 +366,8 @@ def calendar_profile_chart(profile: pd.DataFrame, unit: str = "MWmed") -> go.Fig
         figure.add_trace(go.Scatter(
             x=rows.index, y=rows["mean"], customdata=rows["count"], mode="lines+markers" if any(marker_sizes) else "lines", name=label,
             marker={"size": marker_sizes},
-            line={"color": colors[index % len(colors)], "width": 1.6 if hours <= 120 else 2.3,
-                  "dash": "dot" if hours <= 120 else ["solid", "dash", "longdash"][index % 3]},
+            line={"color": colors[index % len(colors)], "width": 2.3,
+                  "dash": ["solid", "dash", "longdash"][index % 3]},
             connectgaps=False,
             hovertemplate="Hora: %{x:02d}h<br>Carga média: <b>%{y:,.2f} " + unit + "</b><br>%{customdata} observações<extra>%{fullData.name}</extra>",
         ))

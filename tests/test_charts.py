@@ -202,7 +202,7 @@ def test_calendar_chart_keeps_scopes_separate_and_hour_gaps():
     assert any("Municipal — Rio de Janeiro" in trace.name for trace in figure.data)
     assert any("Nacional" in trace.name for trace in figure.data)
     assert figure.layout.xaxis.ticktext[:2] == ("00h", "03h")
-    assert all(trace.line.dash == "dot" for trace in figure.data)
+    assert {trace.line.dash for trace in figure.data} == {"solid", "dash"}
     assert pd.isna(figure.data[0].y[1])
     json.loads(figure.to_json())
 
