@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from components.charts import NAVY, PLOTLY_CONFIG, TEAL, explorer_chart
-from components.metrics_cards import format_number, metric_cards
+from components.metrics_cards import format_number
 from components.page_frame import available_choice, model_label, scope_label
 from components.tables import data_table
 from services import model_versions as versions
@@ -36,28 +36,29 @@ def render_headline(frame, selected):
         return
     st.caption(f"{_describe(selected)} · {selected['alvo_id']}")
     table = reference_metrics(frame, selected)
-    cards = []
-    for index, (name, row) in enumerate(table.iterrows()):
-        metric = _number(row["mae_mwmed"], "MWmed")
-        detail = f"{format_number(row['n_pares'], 0)} pares"
-        if index:
-            detail += f" · Redução do MAE: {_number(row['reducao_pct'], '%')}"
-        cards.append({"label": model_label(name), "value": metric, "help": detail})
-    metric_cards(cards)
+    for index, (column, (name, row)) in enumerate(zip(st.columns(len(table)), table.iterrows(), strict=True)):
+        reduction = format_number(row["reducao_pct"], 2)
+        if reduction == "-0,00":
+            reduction = "0,00"
+        available = reduction != "N/D"
+        delta = f"{reduction}% · redução do MAE" if available else "N/D · redução do MAE"
+        column.metric(
+            model_label(name), _number(row["mae_mwmed"], "MWmed"),
+            delta=delta if index else None, delta_arrow="off",
+            delta_color="normal" if available and reduction != "0,00" else "off",
+            help=f"{format_number(row['n_pares'], 0)} pares", border=True,
+        )
+    pairs = " · ".join(f"{model_label(name)}: {format_number(count, 0)} pares"
+                       for name, count in table["n_pares"].items())
+    st.caption(pairs)
     st.caption(
-        "Pares por método e redução do MAE do modelo frente a cada referência. "
-        "A comparação é descritiva e usa métricas agregadas do mesmo recorte. As contagens não comprovam a identidade dos pares."
+        "As reduções comparam agregados do mesmo recorte. Valores negativos indicam MAE maior no modelo. "
+        "Contagens iguais por si só não comprovam a identidade dos pares."
     )
     values = table["mae_mwmed"].dropna()
     if values.empty:
         return
     labels = [model_label(name) for name in table.index]
-    result = table["reducao_pct"]
-    st.write(" · ".join(
-        f"{model_label(name)}: {format_number(row['n_pares'], 0)} pares"
-        + (f", redução de {_number(result.at[name], '%')}" if name != table.index[0] else "")
-        for name, row in table.iterrows()
-    ))
     figure = go.Figure(go.Bar(
         x=labels, y=table["mae_mwmed"], marker_color=[TEAL, NAVY, NAVY],
         hovertemplate="%{x}<br>MAE: %{y:,.2f} MWmed<extra></extra>",

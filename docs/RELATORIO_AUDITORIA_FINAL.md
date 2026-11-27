@@ -31,7 +31,7 @@ Na rodada final, os filtros de emissão e as métricas mensais passaram a exibir
 - A camada local tem 88 partições Parquet, 44 por horizonte. Foram conferidos SHA-256 e contagens. A leitura por partição confirmou 1.938.816 linhas de 24 h e 4.580.064 de 48 h com grade emissão–passo–alvo, horizonte completo e chave de passo sem duplicatas.
 - Nos 6.518.880 registros, observado do alvo, persistência em t₀ e referência semanal no alvo menos 168 h coincidiram com a série auditada na tolerância de 10⁻⁸ MWmed. Os IDs da previsão resolveram no inventário do cenário e estavam no intervalo de vigência registrado para a emissão. Essa checagem usa o calendário entregue.
 - Medição pontual local em partições grandes, após resolver o caminho, o hash e o estimador: 24 passos em 0,010 s e 48 passos em 0,007 s. Consultas dos episódios nos mesmos recortes retornaram 17.856 pares em 0,391 s e 35.712 pares em 0,063 s. A segunda consulta reutilizou cache de cenário. Essas são latências do serviço local, sem interface nem transferência remota.
-- O leitor legado abriu as previsões V1. No teste de dezembro de 2025, o recorte mensal validado retornou 16.704 pares de 24 h e 33.408 de 48 h. A V5 é o padrão. A amostra pública contém 12 emissões de referência e 432 passos reais, com ambas as hipóteses, horizontes e as três etapas.
+- O leitor legado abriu as previsões V1. No teste de dezembro de 2025, o recorte mensal validado retornou 16.704 pares de 24 h e 33.408 de 48 h. A V5 é o padrão. A primeira amostra pública tinha 12 emissões de referência e 432 passos reais. A ampliada, integrada no PR #2, preserva essas referências e contém 1.420 emissões, 51.120 passos, 22 meses e 88 partições.
 
 ## Limites científicos e de produto
 
@@ -49,7 +49,13 @@ O verificador da seleção pública aprovou os 107 arquivos previstos para o Git
 
 Para o Community Cloud, a demonstração usa `streamlit_app.py`, Python 3.13 e a amostra V5. O acervo completo existe localmente. O índice, as 88 partições e o legado somam 94.804.266 bytes. Os hashes e tamanhos das partições e o hash do ZIP legado foram conferidos. O teste da fonte HTTPS simula a consulta seletiva e a rejeição de conteúdo divergente. A verificação do serviço real requer o endpoint aprovado, as chaves de configuração e o acesso ao app com a branch e o commit identificados. [Roteiro de implantação](DEPLOY_STREAMLIT.md)
 
-Na rodada final, **467 testes passaram no Windows**. A verificação incluiu a amostra distribuída, os rótulos de interface, as datas e a fonte HTTPS simulada. `pip check` passou e o teste de inicialização retornou HTTP 200 nas três rotas. A consulta à API do GitHub não retornou registros de implantação para a branch. Isso não determina o estado de um app no Community Cloud.
+Na rodada anterior do repositório legado, **467 testes passaram no Windows**. A verificação incluiu a amostra distribuída, os rótulos de interface, as datas e a fonte HTTPS simulada. `pip check` passou e o teste de inicialização retornou HTTP 200 nas três rotas. A consulta à API do GitHub não retornou registros de implantação para a branch. Isso não determina o estado de um app no Community Cloud.
+
+## Verificação na preparação da versão final
+
+A suíte executada em 27/11/2026 aprovou **514 testes no Windows**. A seleção pública e as três rotas HTTP passaram. O navegador confirmou a amostra ampliada, cartões com reduções de MAE, filtros de 24 h e 48 h, exportação de uma emissão, sensibilidade às hipóteses, estudo de Ano-Novo e calendário. Uma verificação separada reproduziu 72 MAEs e denominadores em 24 recortes V5. Consulte o [registro da homologação](HOMOLOGACAO_FINAL.md) para detalhes e limites.
+
+A comparação com o CSV oficial do ONS confirma a proveniência regional da carga. O dicionário não documenta o fuso e a borda do carimbo bruto. A reprodução do treinamento exige notebooks, dados e logs. O escopo segue retrospectivo e a capacidade operacional ainda não foi certificada. [Fundamentação metodológica](METODOLOGIA_CIENTIFICA.md)
 
 ## Prontidão e pendências da rodada final
 
@@ -58,7 +64,7 @@ Na rodada final, **467 testes passaram no Windows**. A verificação incluiu a a
 | D01, D10 e D16 | Implementados no painel | Interface e documentação em português, identidade provisória, datas de apresentação e contratos técnicos preservados. |
 | E02 | Validado para o recorte regional. Recorte municipal bloqueado | Para apresentar a pesquisa como municipal, o grupo deve obter série municipal comprovada e revisar a delimitação e a avaliação dos modelos. Se o alvo regional for adotado academicamente, a monografia deve refletir essa decisão. |
 | E05, E06 e E09 | Hipóteses e etapas preservadas. Protocolo completo de treinamento pendente | Faltam a decisão documentada sobre o carimbo e o pipeline reproduzível com dados de entrada, janelas, transformações e regra de seleção. Checagens da entrega não certificam ausência de vazamento no treinamento. |
-| F14 | Preparação verificada. Disponibilização integral externa pendente | Aprovar armazenamento e redistribuição, servir os 90 objetos por HTTPS, configurar URL e hash no app, testar emissões fora da amostra e registrar URL e SHA do app hospedado. |
+| F14 | Preparação e amostra verificadas localmente. Homologação no Cloud pendente | Criar app paralelo com sessão administrativa e registrar SHA/URL após revisão. A hospedagem integral é complementar e depende de redistribuição e destino autorizados. |
 | Correspondência R001–R157 | Bloqueada por falta da fonte | A busca no histórico, no projeto e nos anexos encontrou menções ao checklist. O inventário dos pacotes contém versões, métricas e dados, sem o checklist. Os 134 IDs são requisitos decompostos da auditoria, com D16 acrescentado posteriormente. |
 
 **Pronto para demonstração acadêmica local do estudo regional**, com cobertura integral V1/V5 na instalação que dispõe do acervo e com cobertura amostral V5 em checkout limpo. **A defesa de conclusões municipais, a certificação do treino e a oferta integral em um endereço público permanecem pendentes.** A validação da apresentação deve identificar a abrangência regional e explicitar as hipóteses e a cobertura exibida.

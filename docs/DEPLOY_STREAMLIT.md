@@ -16,6 +16,34 @@ O catálogo regional **ONS Sudeste/Centro-Oeste** é a fonte padrão. Em um chec
 
 A pessoa responsável pelo app deve confirmar permissão para implantar a branch na organização, visibilidade e endereço efetivos. Para um app já existente, confirme a branch associada e o commit em execução. Registre a URL efetiva após verificar o acesso do público autorizado. O subdomínio histórico `energy-forecast-tcc` era uma sugestão do plano inicial. [Instruções oficiais de implantação](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy)
 
+## Homologação em aplicativo paralelo
+
+| Campo | Candidato em revisão | Depois da consolidação aprovada |
+| --- | --- | --- |
+| Repositório | `tccilda/painel-interativo` | Mesmo repositório |
+| Branch | `docs/metodologia` durante a revisão, ou `dev` após o merge do candidato | `main`, após a promoção |
+| Entrada e ambiente | `streamlit_app.py`, Python 3.13 | Mesma entrada e versão |
+| Dados | Somente a amostra V5 incluída no checkout | Amostra V5, com acervo integral opcional |
+| Endereço | Subdomínio exclusivo de homologação | Validar disponibilidade do endereço definitivo na janela de troca |
+
+1. Registre SHA, PR, duas execuções aprovadas na matriz Windows/Ubuntu, responsável pela homologação e janela de teste. Use o checkout limpo abaixo para conferir pacote e rotas antes de implantar.
+2. No workspace `tccilda`, confirme acesso administrativo e autorização do GitHub para o Streamlit. Crie um app separado com as coordenadas acima, confira o subdomínio disponível e mantenha os ajustes de dados externos e de demonstração ausentes. A amostra versionada é suficiente para a banca. [Acesso ao GitHub pelo Streamlit](https://docs.streamlit.io/deploy/streamlit-community-cloud/get-started/connect-your-github-account) · [Implantação](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy)
+3. Compare a origem exibida nos logs e o commit da branch candidata. Registre URL efetiva, commit, data, Python, conclusão dos testes abaixo e nome de quem homologou.
+4. Em sessão sem login, confirme carregamento e as três abas. No Explorador, alterne as hipóteses, 24 h e 48 h, e emita consultas de 2025 e retrospectiva 2026. Confira a identificação de 1.420 emissões em 22 meses quando descrita para toda a amostra e a contagem do recorte selecionado. Exercite a exportação de uma emissão.
+5. Em Desempenho, confira redução visível, sinal, N/D, sensibilidade e pares comuns. Valide o caso de Ano-Novo de 48 h UTC. Em Sazonalidade, confira dupla escala, datas civis distintas, calendário raro e rótulo regional. Registre erros de carregamento, renderização ou acesso no checklist.
+6. Promova `dev` por PR com merge convencional após homologação do candidato, revisão do grupo e CI verde. Confirme o SHA de `main`, repita os testes essenciais e sincronize `dev` sem reescrever histórico. A aprovação técnica não encerra as pendências científicas descritas em [Pendências do grupo](PENDENCIAS_GRUPO.md). Antes de apresentar os resultados, o grupo deve aceitar a delimitação acadêmica e explicitar as pendências.
+7. Preserve a publicação ativa durante a homologação. Se houver troca de endereço, valide o acesso e o commit no novo app durante a janela acordada. Mantenha o endereço paralelo como alternativa e deixe a publicação anterior disponível até confirmar a substituição. A troca de branch ou repositório exige nova implantação. Crie um app separado para manter o anterior acessível durante a migração. [Mudança de coordenadas no Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app/rename-your-app)
+
+### Registro de homologação
+
+| Campo | Registro |
+| --- | --- |
+| Branch e commit candidato | Preencher com o SHA efetivamente testado |
+| URL paralela e visibilidade | Registrar após verificar o acesso |
+| Resultado das três rotas e do roteiro de dados | Em aberto até as verificações no Community Cloud |
+| Aceite do grupo e data | Em aberto |
+| Plano de troca e contingência | Manter app ativo até validar a substituta |
+
 ## Previsões completas V1 e V5
 
 1. Confirme a autorização de distribuição dos arquivos derivados. A configuração atual usa acesso HTTPS aos objetos sem cabeçalho de autenticação personalizado. Se o grupo exigir acesso privado com autenticação adicional, defina essa integração antes da distribuição.
