@@ -102,13 +102,15 @@ def test_science_views_follow_performance_controls_and_load_case_on_demand(monke
     app.selectbox(key="evolution_scenario").set_value(SCENARIOS[1]).run()
     assert not app.exception
     assert [card.value for card in app.metric] == ["1.080,64 MWmed", "2.022,87 MWmed", "5.508,19 MWmed"]
+    assert [card.delta for card in app.metric[1:]] == ["46,58% · redução do MAE", "80,38% · redução do MAE"]
+    assert any("104.760 pares" in item.value for item in app.caption)
     chart = json.loads(app.get("plotly_chart")[0].proto.spec)
     assert chart["data"][0]["type"] == "bar" and chart["layout"]["yaxis"]["range"][0] == 0
     sensitivity = next(box for box in app.expander if box.label == "Sensibilidade à hipótese de horário")
     assert sensitivity.dataframe[0].value["São Paulo"].iloc[0] == "1.080,6430"
     app.radio(key="evolution_horizon").set_value(48).run()
     assert app.metric[0].value == "1.262,65 MWmed"
-    assert any("37,65 %" in row.value for row in app.markdown)
+    assert [card.delta for card in app.metric[1:]] == ["37,65% · redução do MAE", "78,43% · redução do MAE"]
     assert len(next(box for box in app.expander if "Estudo de caso" in box.label).get("plotly_chart")) == 0
 
     app.toggle(key="science_load_new_year").set_value(True).run()
@@ -120,3 +122,23 @@ def test_science_views_follow_performance_controls_and_load_case_on_demand(monke
     assert any("passo **34**" in row.value and "02/01/2026 às 10:00" in row.value for row in case.markdown)
     plot = json.loads(case.get("plotly_chart")[0].proto.spec)
     assert {trace["name"] for trace in plot["data"]} == {"Histórico", "Previsto", "Real", "Semana anterior", "Persistência"}
+
+
+
+def test_visible_reduction_preserves_negative_sign_and_unavailable_reference(monkeypatch):
+    from components import scientific_results
+
+    table = pd.DataFrame(
+        {"mae_mwmed": [12.0, 10.0, None], "n_pares": [100, 100, None], "reducao_pct": [None, -20.0, None]},
+        index=["ols_estabilizado", "sazonal_semanal", "persistencia"],
+    )
+    monkeypatch.setattr(scientific_results, "reference_metrics", lambda frame, selected: table)
+    app = AppTest.from_string(
+        "from components.scientific_results import render_headline\n"
+        "render_headline(None, dict(versao='v5', modelo='ols_estabilizado', horizonte_h=24, "
+        "bloco_horas='1–24 h', etapa='teste_2025', cenario='hipotese_UTC', alvo_id='ONS_SECO_piloto'))"
+    ).run()
+    assert not app.exception
+    assert app.metric[1].delta == "-20,00% · redução do MAE"
+    assert app.metric[2].value == "N/D"
+    assert app.metric[2].delta == "N/D · redução do MAE"

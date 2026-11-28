@@ -135,7 +135,9 @@ def test_audited_calendar_uses_versioned_ids_and_separate_pending_rows():
     assert counts.loc[counts["Horas"].eq("24"), "Datas civis distintas"].tolist() == ["1"] * 2
     assert counts.loc[counts["Horas"].eq("120"), "Datas civis distintas"].tolist() == ["5"]
     assert set(counts.loc[counts["Horas"].eq("24"), "Tamanho da amostra"]) == {"Rara · menos de 5 datas"}
-    assert any("24.837 de 24.840" in entry.value and "99,99%" in entry.value for entry in app.caption)
+    sample = with_label(app.expander, "Amostra do calendário")
+    assert any("24.837 de 24.840" in entry.value and "99,99%" in entry.value for entry in sample.markdown)
+    assert not any("24.837 de 24.840" in entry.value or "Atos municipais e estaduais" in entry.value for entry in app.caption)
     assert "00:00" in next(table.value["Hora"].tolist() for table in app.dataframe if "Hora" in table.value)
     plots = [json.loads(chart.proto.spec) for chart in app.get("plotly_chart")]
     calendar = next(chart for chart in plots if chart["layout"].get("title", {}).get("text") == "Perfil por calendário")
@@ -197,7 +199,9 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     assert sum("reference_origin" in entry for entry in index) == 12
     page = AppTest.from_file(ROOT / "streamlit_app.py", default_timeout=60).run()
     assert not page.exception and len(hourly_values(page)) == 24
+    assert not any(item.value.startswith("Carga do ONS Sudeste/Centro-Oeste ·") for item in page.caption)
     method = next(item for item in page.expander if item.label == "Detalhes metodológicos")
+    assert any("ONS_SECO_piloto" in item.value and "MWmed" in item.value for item in method.markdown)
     text = " ".join(item.value for item in method.markdown)
     assert all(phrase in text for phrase in (
         "duas hipóteses", "UTC e São Paulo", "aparecem no horário de São Paulo",
@@ -207,7 +211,8 @@ def test_clean_checkout_ships_real_v5_sample(monkeypatch, tmp_path):
     ))
     temperature = next(card for card in page.metric if card.label == "Temperatura em t₀")
     assert all(word in temperature.proto.help for word in ("contexto", "1 h", "A621", "A601", "causal"))
-    coverage = next(item.value for item in page.caption if "97 emissões reais" in item.value)
+    assert not any("97 emissões reais" in item.value for item in page.caption)
+    coverage = next(item.value for item in method.markdown if "97 emissões reais" in item.value)
     assert all(text in coverage for text in ("24 ou 48 alvos", "103.032 a 347.760 pares"))
     issue_metrics, metrics = [table.value for table in page.dataframe[:2]]
     assert issue_metrics["Estimador"].tolist() == metrics["Estimador"].tolist() == [
@@ -562,7 +567,8 @@ def test_version_bars_start_at_zero_for_close_values_and_export_full_precision(
     assert axis["tickformat"] == ",.2f"
     lower, upper = axis["range"]
     assert lower == 0 and upper > 100
-    assert any("pares comuns" in item.value for item in app.caption)
+    method = with_label(app.expander, "Disponibilidade e detalhes metodológicos")
+    assert any("valores absolutos" in item.value and "pares comuns" in item.value for item in method.markdown)
     values = versions.read_csv(BytesIO(encoded[0]))["mae_mwmed"]
     original = versions.metric_tables(str(versions.root()))["globais"].query(
         "cenario == @scenario and etapa == @stage and modelo == @model and horizonte_h == 24"

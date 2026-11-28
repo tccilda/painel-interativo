@@ -12,7 +12,7 @@ Repositório oficial [tccilda/painel-interativo](https://github.com/tccilda/pain
 
 A fonte padrão mostra a V5 e o histórico experimental dos modelos de 24h e 48h. As métricas, a série e o calendário já acompanham o projeto. A carga da entrega corresponde ao ONS Sudeste/Centro-Oeste. Prepare o detalhe V1/V5 e configure a hospedagem seguindo o [guia de integração das versões](docs/INTEGRACAO_VERSOES.md).
 
-A [matriz de requisitos](docs/MATRIZ_REQUISITOS.md) relaciona o pedido aos dados, código e testes. O [relatório de auditoria](docs/RELATORIO_AUDITORIA_FINAL.md) registra o que foi validado e as pendências científicas. Os [resultados para a banca](docs/RESULTADOS_CIENTIFICOS.md) documentam as comparações com as referências, a sensibilidade ao fuso e o caso de Ano-Novo. A [revisão da monografia](docs/REVISAO_MONOGRAFIA.md) identifica as seções acadêmicas correspondentes.
+A [matriz de requisitos](docs/MATRIZ_REQUISITOS.md) relaciona o pedido aos dados, código e testes. O [relatório de auditoria](docs/RELATORIO_AUDITORIA_FINAL.md) registra o que foi validado e as pendências científicas. Os [resultados para a banca](docs/RESULTADOS_CIENTIFICOS.md) documentam as comparações com as referências, a sensibilidade ao fuso e o caso de Ano-Novo. A [revisão da monografia](docs/REVISAO_MONOGRAFIA.md) identifica as seções acadêmicas correspondentes. A [fundamentação metodológica](docs/METODOLOGIA_CIENTIFICA.md) reúne as evidências para a banca e a proposta de delimitação territorial.
 
 ## Situação da publicação
 
@@ -100,7 +100,7 @@ A navegação fica no topo. O seletor de fonte só aparece quando a instalação
 
 ## Arquitetura
 
-O nome e o subtítulo do aplicativo são definidos por `APP_NAME` e `APP_SUBTITLE` em `streamlit_app.py`. As variáveis `ENERGY_FORECAST_*` e o diretório temporário `energy-forecast-versions` conservam seus nomes para que configurações instaladas e caches existentes continuem funcionando.
+O nome do aplicativo é definido por `APP_NAME` em `streamlit_app.py`. As variáveis `ENERGY_FORECAST_*` e o diretório temporário `energy-forecast-versions` conservam seus nomes para que configurações instaladas e caches existentes continuem funcionando.
 
 ```text
 streamlit_app.py             # Configuração e navegação st.Page/st.navigation

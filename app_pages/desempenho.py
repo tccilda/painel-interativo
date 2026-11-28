@@ -111,6 +111,7 @@ def render() -> None:
         st.write("N/D indica quantidade não verificável. Resumos agregados não confirmam cobertura nem correspondência dos pares.")
         st.download_button("Exportar avaliação completa", csv_bytes(summary.assign(data_source=bundle.mode)), file_name=f"{'sintetico_' if bundle.mode == 'demo' else ''}avaliacao_por_conjunto.csv", mime="text/csv")
     with st.expander("Detalhes metodológicos"):
+        st.write("A tabela de maiores erros exibe emissão e alvo no horário de São Paulo.")
         st.write("MAE e RMSE estão na unidade da carga; MAPE está em %. Observados iguais a zero são excluídos apenas do MAPE. Positivos próximos de zero são mantidos e podem ampliar o percentual; não há corte arbitrário.")
         st.write("Persistência repete a última carga observada até t₀, com defasagem máxima de 1 h. Sazonal semanal usa o alvo menos 168 h, disponível em t₀. Nenhuma referência consulta carga posterior à emissão.")
         st.write("Modelo e referências usam a interseção dos pares disponíveis de cada segmento. Os primeiros 24 passos dos dois modelos usam pares comuns quando verificáveis. Conjuntos, regiões e unidades não são misturados.")
@@ -154,7 +155,6 @@ def render() -> None:
     if worst.empty:
         st.info("Nenhum episódio atende aos filtros.")
         return
-    st.caption("Emissão e alvo no horário de São Paulo.")
     display = worst.copy()
     for column in ("timestamp", "issued_at"):
         display[column] = display[column].dt.tz_convert(settings.timezone).dt.strftime("%d/%m/%Y %H:%M")

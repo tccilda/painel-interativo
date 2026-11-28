@@ -53,7 +53,7 @@ def test_entrypoint_horizon_and_source_switch(monkeypatch):
     app = AppTest.from_file(ROOT / "streamlit_app.py").run(timeout=60)
     assert not app.exception
     assert app.title[0].value == "Monitor de Previsão"
-    assert any(item.value == "*Painel Interativo de Previsão de Demanda Energética*" for item in app.markdown)
+    assert all("Painel Interativo de Previsão de Demanda Energética" not in item.value for item in app.markdown)
     assert app.header[0].value == "Explorador de Previsões"
     assert all(widget.label != "Fonte" for widget in app.selectbox)
     assert not any("Modo demonstração" in item.value for item in app.warning)
