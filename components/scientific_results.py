@@ -51,10 +51,6 @@ def render_headline(frame, selected):
     pairs = " · ".join(f"{model_label(name)}: {format_number(count, 0)} pares"
                        for name, count in table["n_pares"].items())
     st.caption(pairs)
-    st.caption(
-        "As reduções comparam agregados do mesmo recorte. Valores negativos indicam MAE maior no modelo. "
-        "Contagens iguais por si só não comprovam a identidade dos pares."
-    )
     values = table["mae_mwmed"].dropna()
     if values.empty:
         return

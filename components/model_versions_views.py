@@ -106,8 +106,6 @@ def _render_v5(*, legacy_available):
     with columns[3]:
         history_hours = st.selectbox("Histórico anterior", [72, 48, 120, 168], format_func=lambda v: f"{v} h", key="v5_explorer_history", placeholder="Selecione uma opção")
     entries = {e["month"]: e for e in index if (e["scenario"], e["stage"], e["horizon"]) == (scenario, stage, horizon)}
-    if preview:
-        st.caption(preview_coverage(entries.values()))
     if not entries:
         st.info("Nenhuma emissão no recorte selecionado.")
         return
@@ -140,10 +138,18 @@ def _render_v5(*, legacy_available):
     data = versions.forecast_detail(path, entry["sha256"], horizon, model, issue)
     observed = versions.load_scenario(str(versions.root()), scenario)
     t0 = pd.Timestamp(issue)
-    _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, preview=preview)
+    _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours)
 
     with st.expander("Detalhes metodológicos"):
         st.write(TARGET_CONTEXT)
+        if preview:
+            st.write(preview_coverage(entries.values()))
+            st.write(
+                "O OLS teve MAE e MAPE menores que as duas referências em 2 dos 12 exemplos originais do manifesto "
+                "e em 12 dos 12 recortes completos."
+            )
+        st.write("MAE é o erro absoluto médio. O MAPE exclui observados iguais a zero. "
+                 "A sazonal semanal usa a carga de 168 h antes do alvo e a persistência, a carga na emissão.")
         st.write("V2–V4 têm apenas métricas agregadas, em Avaliação de Desempenho e Erros.")
         if not legacy_available:
             st.write("As previsões horárias da V1 estão disponíveis em instalações com o ZIP legado.")
@@ -164,7 +170,8 @@ def _render_v5(*, legacy_available):
             "e um novo período reservado para teste. A avaliação exibida abrange modelos lineares e referências simples."
         )
 
-def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours, *, preview):
+
+def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours):
     future = issue_frame(data)
     previous = observed.observations
     previous = previous.loc[(previous["timestamp"] <= t0) & (previous["timestamp"] > t0 - timedelta(hours=history_hours))]
@@ -183,7 +190,7 @@ def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours
          "help": f"{future.observed_load.count()} de {horizon} horas com carga observada."},
     ])
     model = data["modelo"].iloc[0]
-    _reference_comparison(future, model, t0, horizon, stage, scenario, preview=preview)
+    _reference_comparison(future, model, t0, horizon, stage, scenario)
     figure = explorer_chart(frame, t0)
     st.plotly_chart(figure, width="stretch", config=PLOTLY_CONFIG)
     with st.expander("Valores horários e calendário"):
@@ -210,7 +217,7 @@ def _render_forecast(data, observed, t0, horizon, scenario, stage, history_hours
         st.download_button("Exportar emissão V5", csv_bytes(export), file_name=f"v5_{horizon}h.csv", mime="text/csv")
 
 
-def _reference_comparison(future, model, t0, horizon, stage, scenario, *, preview):
+def _reference_comparison(future, model, t0, horizon, stage, scenario):
     references = {"sazonal_semanal": "seasonal_load", "persistencia": "persistence_load"}
     methods = {model: "predicted_load", **{name: column for name, column in references.items() if name != model}}
     global_methods = ["ols_estabilizado", *references]
@@ -230,9 +237,7 @@ def _reference_comparison(future, model, t0, horizon, stage, scenario, *, previe
     with issue_column:
         data_table(pd.DataFrame(rows), alt="MAE e MAPE da emissão selecionada")
 
-    global_column.markdown("**Resumo do recorte completo**")
-    if model != "ols_estabilizado":
-        global_column.caption("O resumo apresenta o OLS estabilizado, estimador selecionado na avaliação V5, e as duas referências.")
+    global_column.markdown("**Recorte completo · OLS estabilizado**")
     try:
         global_metrics = versions.metric_tables(str(versions.root()))["globais"]
         selected = _filter(global_metrics, horizon, stage, scenario)
@@ -245,8 +250,6 @@ def _reference_comparison(future, model, t0, horizon, stage, scenario, *, previe
     else:
         columns = {"n_pares": "Pares", "n_mape_validos": "Pares MAPE",
                    "mae_mwmed": "MAE (MWmed)", "mape_pct": "MAPE (%)"}
-        if selected[["n_pares", "n_mape_validos"]].nunique(dropna=False).eq(1).all() and selected["n_pares"].notna().all():
-            global_column.caption(f"Os três métodos usam {format_number(selected['n_pares'].iloc[0], 0)} pares de emissão e hora prevista para o MAE.")
         with global_column:
             data_table(
                 selected[list(columns)].rename(columns=columns).assign(
@@ -254,16 +257,6 @@ def _reference_comparison(future, model, t0, horizon, stage, scenario, *, previe
                 )[["Estimador", *columns.values()]],
                 integer_columns=("Pares", "Pares MAPE"), alt="Métricas do recorte completo da V5",
             )
-    if preview:
-        st.caption(
-            "O OLS teve MAE e MAPE menores que as duas referências em 2 dos 12 exemplos originais do manifesto e em 12 dos 12 "
-            "recortes completos. Cada exemplo mostra só uma emissão, enquanto cada recorte completo reúne "
-            "todas as emissões avaliadas naquela combinação."
-        )
-    st.caption(
-        "MAE é o erro absoluto médio. MAPE é o erro percentual absoluto médio e usa observados diferentes "
-        "de zero. A Sazonal semanal repete a carga de 168 h antes do alvo. A Persistência repete a carga na emissão."
-    )
 
 
 def _filter(frame, horizon, stage, scenario):
@@ -339,7 +332,6 @@ def render_evolution():
         fig.update_layout(height=300, margin={"t": 15}, separators=",.")
         fig.update_xaxes(categoryorder="array", categoryarray=[version_label(v) for v in order])
         st.plotly_chart(fig, width="stretch", config=PLOTLY_CONFIG)
-        st.caption("Valores absolutos com os pares de cada versão. A seção V4 × V5 mostra diferenças calculadas sobre pares comuns, quando disponíveis.")
     elif display["modelo"].isna().all() and not (version == "piloto" and stage == "retrospectiva_2026"):
         if role == "Alternativa":
             st.info(f"Não há estimadores alternativos disponíveis neste recorte de {horizon} h.")
@@ -388,6 +380,10 @@ def render_evolution():
             })
     with st.expander("Disponibilidade e detalhes metodológicos"):
         st.write(TARGET_CONTEXT)
+        st.write("As reduções comparam agregados do mesmo recorte. Valores negativos indicam MAE maior no modelo. "
+                 "Contagens iguais por si só não comprovam a identidade dos pares.")
+        st.write("O gráfico de evolução mostra valores absolutos com os pares de cada versão. "
+                 "A seção V4 × V5 mostra diferenças calculadas sobre pares comuns, quando disponíveis.")
         st.write("A comparação V4 × V5 usa os pares comuns fornecidos. Os deltas são V5 − V4 e a variação do MAPE é expressa em pontos percentuais.")
         st.write("V1 tem carimbo bruto sem fuso documentado e fica em recorte próprio. V2–V4 incluem agregados; V1 e V5 têm detalhe quando a fonte correspondente está configurada. As duas hipóteses de V2–V5 seguem abertas.")
         st.write("N/D representa ausência no recorte. MAE e RMSE em MWmed; MAPE em %. Os blocos 1–24 e 25–48 pertencem ao modelo de 48 h. Validação, teste e retrospectiva de 2026 são exibidos separadamente.")

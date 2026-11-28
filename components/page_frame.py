@@ -8,7 +8,7 @@ from components.metrics_cards import format_number
 from contracts.forecast_schema import Forecast
 from services.data_loader import DataBundle
 from services.forecast_catalog import forecast_catalog, materialize_forecast
-from services.geography_service import TARGET_REGION, geographic_status, municipal_bundle
+from services.geography_service import geographic_status, municipal_bundle
 from services.history_service import future_observation_count
 
 SPLIT_LABELS = {
@@ -74,7 +74,6 @@ def format_timestamp(value: pd.Timestamp, timezone: str = "America/Sao_Paulo") -
 def page_header(title: str) -> tuple[DataBundle, SidebarSettings]:
     bundle, settings = get_context()
     st.header(title)
-    st.caption(f"{TARGET_REGION}, RJ · {settings.unit} · {timezone_label(settings.timezone)}")
     audit = bundle.provenance.get("geographic_audit") or geographic_status(bundle)
     if audit["status"] == "incompatible":
         st.error("Base incompatível com o recorte municipal. " + audit["reason"])

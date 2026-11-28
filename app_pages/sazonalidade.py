@@ -7,7 +7,7 @@ import streamlit as st
 
 from components.charts import PLOTLY_CONFIG, annual_chart, calendar_profile_chart, daily_pattern_chart, history_chart, load_temperature_chart, monthly_chart, temperature_scatter, weekly_pattern_chart
 from components.metrics_cards import format_number
-from components.page_frame import CALENDAR_CONTEXT, DAY_LABELS, page_header, scope_label
+from components.page_frame import DAY_LABELS, page_header, scope_label
 from components.tables import data_table
 from services.history_service import filter_history, region_history
 from services.pattern_service import aggregate_load_temperature, annual_profile, calendar_coverage, calendar_hourly_profile, calendar_observations, join_weather, monthly_profile
@@ -108,8 +108,6 @@ def _render_profiles(context=None) -> None:
     if bundle.calendar.empty or hours.empty or hours["day_type"].eq("nao_informado").all():
         st.info("Calendário não informado para o período.")
     else:
-        if bundle.mode == "v5":
-            st.caption(CALENDAR_CONTEXT)
         coverage = calendar_coverage(hours)
         categories = coverage.index.tolist()
         selected = st.multiselect(
@@ -127,15 +125,7 @@ def _render_profiles(context=None) -> None:
         else:
             st.plotly_chart(calendar_profile_chart(profile, unit=settings.unit), width="stretch", config=PLOTLY_CONFIG)
 
-        expected = pd.date_range(pd.Timestamp(period[0]).tz_localize(settings.timezone),
-                                 pd.Timestamp(period[1] + timedelta(days=1)).tz_localize(settings.timezone),
-                                 inclusive="left", freq="h")
-        expected_hours = int(expected.year.isin(selected_years).sum())
         total = int(coverage["observed_hours"].sum())
-        st.caption(f"{format_number(total, 0)} de {format_number(expected_hours, 0)} h esperadas no período e anos selecionados "
-                   f"({format_number(100 * total / expected_hours, 2) if expected_hours else 'N/D'}%). "
-                   "O perfil exige cinco datas civis distintas com observações por categoria. "
-                   "O limiar é exploratório e não garante significância estatística.")
         if not shown.empty:
             counts = shown.reset_index()
             counts["day_type"] = counts["day_type"].map(DAY_LABELS)
@@ -148,6 +138,15 @@ def _render_profiles(context=None) -> None:
                                              "observed_hours": "Horas", "civil_dates": "Datas civis distintas"}),
                        alt="Horas observadas, datas civis e cobertura por categoria do calendário")
         with st.expander("Amostra do calendário"):
+            expected = pd.date_range(pd.Timestamp(period[0]).tz_localize(settings.timezone),
+                                     pd.Timestamp(period[1] + timedelta(days=1)).tz_localize(settings.timezone),
+                                     inclusive="left", freq="h")
+            expected_hours = int(expected.year.isin(selected_years).sum())
+            ratio = f"{format_number(100 * total / expected_hours, 2)}%" if expected_hours else "N/D"
+            st.write(f"{format_number(total, 0)} de {format_number(expected_hours, 0)} h esperadas no período "
+                     f"e nos anos selecionados ({ratio}).")
+            st.write("O perfil exige cinco datas civis distintas com observações por categoria. "
+                     "O limiar é exploratório e não garante significância estatística.")
             counts_by_hour = selected_hours.groupby(["hour", "day_type", "holiday_scope"]).size().rename("Observações").reset_index()
             counts_by_hour["hour"] = counts_by_hour["hour"].map(lambda hour: f"{hour:02d}:00")
             counts_by_hour["day_type"] = counts_by_hour["day_type"].map(DAY_LABELS)
